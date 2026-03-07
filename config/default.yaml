@@ -1,0 +1,11 @@
+# Application-level default configuration.
+# This file is the top-level config read by the Tauri app and passed to the backend.
+# It mirrors the structure of backend/config/default_config.yaml and serves
+# as the single source of truth for first-run defaults.
+#
+# Sections:
+# - speech_recognition: model size, language, chunk duration
+# - model_provider: provider type, model name, host, API key
+# - audio: device, sample rate, channels
+# - ui: opacity, initial window position, font size
+# - logging: level, log file enabled

@@ -1,0 +1,26 @@
+{
+  "_comment": "Tauri application configuration file.",
+  "_sections": {
+    "build": "Defines the dev server URL, build commands, and dist directory for the frontend",
+    "tauri": {
+      "allowlist": "Declares which Tauri APIs are accessible from the frontend (shell, window, clipboard, etc.)",
+      "bundle": "Application bundle settings: identifier, icons, targets (deb, appimage, msi, dmg)",
+      "windows": [
+        {
+          "alwaysOnTop": "Set to true so the overlay stays above all other windows",
+          "decorations": "Set to false for a frameless window with no OS chrome",
+          "fullscreenEnabled": "Set to false",
+          "height": "Initial window height in pixels",
+          "label": "Unique window identifier used in window_manager.rs",
+          "resizable": "Set to false to keep the overlay a fixed size",
+          "title": "Application window title",
+          "transparent": "Set to true to allow transparent background rendering",
+          "url": "Points to the frontend dev server or built index.html",
+          "width": "Initial window width in pixels",
+          "x": "Initial X position of the overlay",
+          "y": "Initial Y position of the overlay"
+        }
+      ]
+    }
+  }
+}

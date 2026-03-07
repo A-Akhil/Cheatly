@@ -1,0 +1,44 @@
+# Internal agent workspace files
+rough_note.md
+idea.md
+
+# User configuration (contains API keys and personal preferences)
+config/user.yaml
+backend/config/user_config.yaml
+
+# Python runtime and compiled files
+runtime/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+*.egg-info/
+
+# Build outputs
+dist/
+build/
+target/
+frontend/dist/
+src-tauri/target/
+
+# Node modules
+node_modules/
+
+# Local model files
+models/whisper/*
+models/llm/*
+!models/whisper/.gitkeep
+!models/llm/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
