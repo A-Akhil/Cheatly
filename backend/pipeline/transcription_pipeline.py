@@ -1,9 +1,11 @@
-# Orchestrates the end-to-end flow from audio input to transcript output.
-#
-# Responsibilities:
-# - Coordinate audio capture, buffering, and transcription steps
-# - Pull audio chunks from audio_buffer.py and pass them to streaming_transcriber.py
-# - Append completed transcript segments to transcript_buffer.py
-# - Trigger suggestion_engine.py when enough new transcript text is available
-# - Implement configurable trigger thresholds (e.g., every N words or N seconds)
-# - Log end-to-end pipeline latency for audio-to-transcript steps
+from __future__ import annotations
+
+from backend.context.transcript_history import TranscriptHistory
+
+
+class TranscriptionPipeline:
+	def __init__(self, transcript_history: TranscriptHistory) -> None:
+		self.transcript_history = transcript_history
+
+	def ingest_text(self, text: str) -> None:
+		self.transcript_history.append(text)

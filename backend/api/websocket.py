@@ -1,10 +1,46 @@
-# WebSocket handler for real-time streaming communication with the frontend.
-#
-# Responsibilities:
-# - Accept and maintain WebSocket connections from the React frontend
-# - Stream live transcript updates to the frontend as they are produced
-# - Stream AI suggestion chunks to the frontend as tokens are generated
-# - Handle client disconnections and reconnection events gracefully
-# - Broadcast pipeline state changes (listening, processing, idle)
-# - Use asyncio to manage concurrent WebSocket connections
-# - Integrate with suggestion_engine.py to push suggestions on generation
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
+
+class WebSocketHub:
+	def __init__(self) -> None:
+		self._connections: set[WebSocket] = set()
+
+	async def connect(self, ws: WebSocket) -> None:
+		await ws.accept()
+		self._connections.add(ws)
+
+	def disconnect(self, ws: WebSocket) -> None:
+		self._connections.discard(ws)
+
+	async def broadcast(self, payload: dict[str, Any]) -> None:
+		disconnected: list[WebSocket] = []
+		message = json.dumps(payload)
+		for ws in self._connections:
+			try:
+				await ws.send_text(message)
+			except Exception:
+				disconnected.append(ws)
+		for ws in disconnected:
+			self.disconnect(ws)
+
+
+def build_websocket_router(hub: WebSocketHub) -> APIRouter:
+	router = APIRouter()
+
+	@router.websocket("/ws")
+	async def ws_endpoint(websocket: WebSocket) -> None:
+		await hub.connect(websocket)
+		try:
+			while True:
+				await websocket.receive_text()
+		except WebSocketDisconnect:
+			hub.disconnect(websocket)
+		except Exception:
+			hub.disconnect(websocket)
+
+	return router

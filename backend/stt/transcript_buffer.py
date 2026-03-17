@@ -1,9 +1,21 @@
-# Stores incremental transcript segments produced by streaming_transcriber.py.
-#
-# Responsibilities:
-# - Maintain an ordered list of transcript segments with timestamps
-# - Provide append() to add new segments from the transcriber
-# - Provide get_recent(n_seconds) to return segments from the last N seconds
-# - Provide get_full() to return the complete transcript for the session
-# - Emit an event or callback when a new segment is appended
-# - Thread-safe access for concurrent reads from context_manager.py and websocket.py
+from __future__ import annotations
+
+from collections import deque
+from threading import Lock
+
+
+class TranscriptBuffer:
+	def __init__(self, max_items: int = 128) -> None:
+		self._items = deque(maxlen=max_items)
+		self._lock = Lock()
+
+	def append(self, text: str) -> None:
+		cleaned = text.strip()
+		if not cleaned:
+			return
+		with self._lock:
+			self._items.append(cleaned)
+
+	def get_all(self) -> list[str]:
+		with self._lock:
+			return list(self._items)

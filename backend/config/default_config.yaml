@@ -1,30 +1,37 @@
-# Default configuration values for the Cheatly backend.
-# These values are used when no user configuration overrides are present.
-#
-# Sections to include:
-#
-# speech_recognition:
-#   - model_size: the faster-whisper model to load (e.g. base, small, medium)
-#   - language: transcription language code (e.g. en)
-#   - chunk_duration_ms: audio chunk length in milliseconds (500 to 1000)
-#
-# model_provider:
-#   - provider: which LLM provider to use (ollama or api)
-#   - ollama_model: name of the Ollama model (e.g. llama3)
-#   - ollama_host: Ollama server address (default localhost:11434)
-#   - api_model: LiteLLM model identifier for API-based inference
-#   - api_key: API key placeholder (empty by default)
-#
-# audio:
-#   - device_index: audio input device index (null means system default)
-#   - sample_rate: audio sample rate in Hz (16000)
-#   - channels: number of audio channels (1 for mono)
-#
-# ui:
-#   - opacity: overlay window opacity from 0.0 to 1.0 (default 0.9)
-#   - position_x: initial overlay X position in pixels
-#   - position_y: initial overlay Y position in pixels
-#
-# logging:
-#   - level: log verbosity level (info, debug, warning, error)
-#   - log_to_file: whether to write logs to disk (true or false)
+app:
+  host: "127.0.0.1"
+  port: 8765
+  cors_origins:
+    - "*"
+
+speech_recognition:
+  enabled: false
+  model_size: "base"
+  language: "en"
+  chunk_duration_ms: 800
+
+model_provider:
+  provider: "google"
+  google_model: "gemma-3-1b-it"
+  google_fallback_model: "gemini-3-flash-preview"
+  ollama_model: "llama3"
+  ollama_host: "http://127.0.0.1:11434"
+  temperature: 0.3
+  max_output_tokens: 512
+
+rag:
+  enabled: true
+  sqlite_path: "./backend/context/rag_store.db"
+  chunk_size: 700
+  chunk_overlap: 120
+  top_k: 5
+
+audio:
+  device_index: null
+  sample_rate: 16000
+  channels: 1
+
+logging:
+  level: "INFO"
+  log_to_file: true
+  file_path: "./backend/logging/backend.log"

@@ -1,7 +1,19 @@
-# Time and timing utility functions.
-#
-# Responsibilities:
-# - Provide a high-resolution timestamp function for latency measurement
-# - Provide a StopWatch context manager that records elapsed time
-# - Format timestamps for log output
-# - Convert between milliseconds and seconds as needed across the backend
+from __future__ import annotations
+
+import time
+from contextlib import contextmanager
+from typing import Iterator
+
+
+def now_ms() -> int:
+	return int(time.time() * 1000)
+
+
+@contextmanager
+def stopwatch() -> Iterator[callable]:
+	start = time.perf_counter()
+
+	def elapsed_ms() -> float:
+		return (time.perf_counter() - start) * 1000
+
+	yield elapsed_ms

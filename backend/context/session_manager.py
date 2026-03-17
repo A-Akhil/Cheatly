@@ -1,9 +1,31 @@
-# Manages the lifecycle of conversation sessions.
-#
-# Responsibilities:
-# - Create a new session with a unique ID and start timestamp
-# - Reset all context on session start: clear memory_store, transcript_history, context_manager
-# - Track session duration and status (active, paused, ended)
-# - Expose start_session(), pause_session(), resume_session(), end_session() methods
-# - Notify relevant pipeline components when session state changes
-# - Provide current session metadata to health.py and websocket.py
+from __future__ import annotations
+
+import threading
+import uuid
+from dataclasses import dataclass
+from time import time
+
+
+@dataclass
+class SessionState:
+	session_id: str
+	started_at: float
+	status: str
+
+
+class SessionManager:
+	def __init__(self) -> None:
+		self._lock = threading.Lock()
+		self._state = self._new_session_state()
+
+	def _new_session_state(self) -> SessionState:
+		return SessionState(session_id=str(uuid.uuid4()), started_at=time(), status="active")
+
+	def reset(self) -> SessionState:
+		with self._lock:
+			self._state = self._new_session_state()
+			return self._state
+
+	def get(self) -> SessionState:
+		with self._lock:
+			return self._state

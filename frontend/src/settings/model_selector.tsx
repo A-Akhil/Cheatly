@@ -1,8 +1,35 @@
-// UI component for selecting the active LLM model and provider.
-//
-// Responsibilities:
-// - Display a dropdown of available Ollama models fetched from GET /models
-// - Display a field for entering an API model identifier for LiteLLM
-// - Toggle between local (Ollama) and API provider mode
-// - Show API key input field when API provider is selected
-// - Emit the selected model and provider values to settings_panel.tsx
+import React from "react";
+
+type Props = {
+	provider: string;
+	googleModel: string;
+	ollamaModel: string;
+	onChange: (next: { provider?: string; googleModel?: string; ollamaModel?: string }) => void;
+};
+
+export function ModelSelector({ provider, googleModel, ollamaModel, onChange }: Props): JSX.Element {
+	return (
+		<div style={{ marginBottom: 10 }}>
+			<h4 style={{ margin: "0 0 6px 0", fontSize: 13 }}>Model Provider</h4>
+			<div style={{ display: "grid", gap: 6 }}>
+				<select value={provider} onChange={(event) => onChange({ provider: event.target.value })}>
+					<option value="mock">mock</option>
+					<option value="google">google</option>
+					<option value="ollama">ollama</option>
+				</select>
+
+				<input
+					value={googleModel}
+					onChange={(event) => onChange({ googleModel: event.target.value })}
+					placeholder="Google model"
+				/>
+
+				<input
+					value={ollamaModel}
+					onChange={(event) => onChange({ ollamaModel: event.target.value })}
+					placeholder="Ollama model"
+				/>
+			</div>
+		</div>
+	);
+}

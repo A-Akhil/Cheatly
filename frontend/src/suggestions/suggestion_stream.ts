@@ -1,8 +1,16 @@
-// Handles the streaming reception of suggestion tokens from the backend.
-//
-// Responsibilities:
-// - Receive partial suggestion text from websocket_client.ts as tokens stream in
-// - Accumulate tokens into complete suggestion strings
-// - Push completed suggestions to suggestion_store.ts
-// - Detect end-of-stream markers to finalize a suggestion entry
-// - Handle stream interruptions and reset partial state cleanly
+import { suggestionStore } from "../state/suggestion_store";
+
+type SuggestionsPayload = {
+	suggestions?: string[];
+	raw?: string;
+};
+
+export const suggestionStream = {
+	applyPayload(payload: SuggestionsPayload): void {
+		suggestionStore.setSuggestions(payload.suggestions ?? [], payload.raw ?? "");
+	},
+
+	clear(): void {
+		suggestionStore.clearSuggestions();
+	}
+};

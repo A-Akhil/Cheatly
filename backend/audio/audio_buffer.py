@@ -1,9 +1,20 @@
-# Rolling audio buffer that stores recent audio chunks for transcription.
-#
-# Responsibilities:
-# - Maintain a thread-safe circular buffer of recent raw audio chunks
-# - Accept new chunks pushed from microphone.py
-# - Expose a method for streaming_transcriber.py to consume chunks
-# - Discard oldest chunks when buffer exceeds the maximum size limit
-# - Support configurable buffer length in seconds
-# - Provide a drain() method to flush all pending audio chunks
+from __future__ import annotations
+
+from collections import deque
+from threading import Lock
+
+
+class AudioBuffer:
+	def __init__(self, max_chunks: int = 64) -> None:
+		self._buffer = deque(maxlen=max_chunks)
+		self._lock = Lock()
+
+	def push(self, chunk: bytes) -> None:
+		with self._lock:
+			self._buffer.append(chunk)
+
+	def pop_all(self) -> list[bytes]:
+		with self._lock:
+			data = list(self._buffer)
+			self._buffer.clear()
+		return data

@@ -1,10 +1,25 @@
-# Handles local LLM inference through Ollama.
-#
-# Responsibilities:
-# - Connect to the locally running Ollama HTTP server (default: localhost:11434)
-# - Send prompt requests to the Ollama /api/generate endpoint
-# - Stream response tokens back as they are generated
-# - Support model selection from the list of locally pulled Ollama models
-# - Handle connection errors if Ollama is not running and report them
-# - Implement the generate(prompt) interface expected by provider_manager.py
-# - Track and log inference latency for each request
+from __future__ import annotations
+
+import requests
+
+
+class OllamaProvider:
+	def __init__(self, host: str, model: str, temperature: float = 0.3) -> None:
+		self.host = host.rstrip("/")
+		self.model = model
+		self.temperature = temperature
+
+	def generate(self, prompt: str) -> str:
+		response = requests.post(
+			f"{self.host}/api/generate",
+			json={
+				"model": self.model,
+				"prompt": prompt,
+				"stream": False,
+				"options": {"temperature": self.temperature},
+			},
+			timeout=120,
+		)
+		response.raise_for_status()
+		data = response.json()
+		return str(data.get("response", "")).strip()

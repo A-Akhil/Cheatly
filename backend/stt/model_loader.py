@@ -1,9 +1,17 @@
-# Loads and manages the faster-whisper model from disk or downloads it.
-#
-# Responsibilities:
-# - Read the configured model size and path from config
-# - Check if the model files exist locally in models/whisper/
-# - Download the model from HuggingFace if not found locally
-# - Instantiate the WhisperModel object and return it to whisper_engine.py
-# - Handle model loading errors and report them to logger.py
-# - Support hot-swapping models when the user changes the model in settings
+from __future__ import annotations
+
+
+class ModelLoader:
+	def __init__(self, model_size: str = "base") -> None:
+		self.model_size = model_size
+
+	def load_whisper(self) -> object | None:
+		try:
+			from faster_whisper import WhisperModel  # type: ignore
+		except Exception:
+			return None
+
+		try:
+			return WhisperModel(self.model_size, device="auto", compute_type="auto")
+		except Exception:
+			return None

@@ -5,6 +5,7 @@ idea.md
 # User configuration (contains API keys and personal preferences)
 config/user.yaml
 backend/config/user_config.yaml
+backend/.env
 
 # Python runtime and compiled files
 runtime/
@@ -35,6 +36,11 @@ models/llm/*
 *.log
 logs/
 
+# Local runtime data
+backend/context/rag_store.db
+
+
+poc_screenshare_hide/
 # OS files
 .DS_Store
 Thumbs.db

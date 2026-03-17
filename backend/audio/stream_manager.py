@@ -1,8 +1,27 @@
-# Controls the flow and state of the audio streaming pipeline.
-#
-# Responsibilities:
-# - Coordinate between microphone.py and audio_buffer.py
-# - Manage start, pause, resume, and stop states of the audio stream
-# - Ensure audio chunks are forwarded to the buffer without dropping frames
-# - Handle stream overflow events and log audio underrun conditions
-# - Provide stream status to health.py for reporting
+from __future__ import annotations
+
+from backend.audio.audio_buffer import AudioBuffer
+from backend.audio.microphone import Microphone
+
+
+class StreamManager:
+	def __init__(self, microphone: Microphone, audio_buffer: AudioBuffer) -> None:
+		self.microphone = microphone
+		self.audio_buffer = audio_buffer
+		self._running = False
+
+	def start(self) -> None:
+		if self._running:
+			return
+		self.microphone.start()
+		self._running = True
+
+	def stop(self) -> None:
+		if not self._running:
+			return
+		self.microphone.stop()
+		self._running = False
+
+	@property
+	def is_running(self) -> bool:
+		return self._running

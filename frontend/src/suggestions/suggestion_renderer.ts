@@ -1,8 +1,21 @@
-// Renders individual suggestion items from parsed suggestion data.
-//
-// Responsibilities:
-// - Accept a suggestion string and render it as a styled bullet item
-// - Apply consistent typography and spacing via Tailwind CSS
-// - Highlight or animate newly arrived suggestions
-// - Handle long suggestion text with truncation and expand-on-hover behavior
-// - Used as the repeating item renderer inside suggestion_panel.tsx
+import React from "react";
+
+type Props = {
+	text: string;
+};
+
+export function SuggestionRenderer({ text }: Props): JSX.Element {
+	return React.createElement(
+		"li",
+		{
+			style: {
+				marginBottom: 8,
+				lineHeight: 1.4,
+				cursor: "pointer"
+			},
+			onClick: () => navigator.clipboard?.writeText(text),
+			title: "Click to copy"
+		},
+		text
+	);
+}

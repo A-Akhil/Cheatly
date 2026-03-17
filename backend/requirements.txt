@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+pydantic
+PyYAML
+google-genai
+requests
+python-multipart
+numpy
+sounddevice
+faster-whisper

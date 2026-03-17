@@ -1,9 +1,21 @@
-# Health check endpoint for internal service status monitoring.
-#
-# Responsibilities:
-# - Expose GET /health endpoint returning overall backend status
-# - Report status of each subsystem: audio, stt, llm, pipeline
-# - Return model loading status and whether whisper is ready
-# - Return current active session count
-# - Return last known latency metrics for STT and LLM inference
-# - Used by Tauri backend_launcher.rs to verify backend is alive after startup
+from __future__ import annotations
+
+from fastapi import APIRouter, Request
+
+
+def build_health_router() -> APIRouter:
+	router = APIRouter(prefix="/health", tags=["health"])
+
+	@router.get("")
+	async def health(request: Request) -> dict:
+		state = request.app.state.backend
+		return {
+			"status": "ok",
+			"provider": state.config.get("model_provider", {}).get("provider"),
+			"session_id": state.session_manager.get().session_id,
+			"rag_documents": len(state.kb.list_documents()),
+			"audio_running": state.stream_manager.is_running,
+			"transcriber_running": state.streaming_transcriber.is_running,
+		}
+
+	return router

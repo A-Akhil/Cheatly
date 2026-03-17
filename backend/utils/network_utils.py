@@ -1,7 +1,11 @@
-# Network utility helpers for backend connectivity checks.
-#
-# Responsibilities:
-# - Check if a local port is available before starting the FastAPI server
-# - Check if the Ollama server is reachable before attempting inference
-# - Provide a retry wrapper for HTTP requests with configurable backoff
-# - Used by main.py and ollama_provider.py at startup
+from __future__ import annotations
+
+import requests
+
+
+def is_endpoint_reachable(url: str, timeout_sec: float = 2.0) -> bool:
+	try:
+		response = requests.get(url, timeout=timeout_sec)
+		return response.status_code < 500
+	except Exception:
+		return False

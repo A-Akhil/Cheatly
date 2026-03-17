@@ -1,8 +1,22 @@
-# In-memory store for temporary session context data.
-#
-# Responsibilities:
-# - Store key-value context items for the current active session
-# - Provide get(key) and set(key, value) methods
-# - Provide clear() to wipe all memory on session reset
-# - Thread-safe access for concurrent reads and writes
-# - Not persisted to disk; data lives only for the session duration
+from __future__ import annotations
+
+import threading
+from typing import Any
+
+
+class MemoryStore:
+	def __init__(self) -> None:
+		self._data: dict[str, Any] = {}
+		self._lock = threading.Lock()
+
+	def set(self, key: str, value: Any) -> None:
+		with self._lock:
+			self._data[key] = value
+
+	def get(self, key: str, default: Any = None) -> Any:
+		with self._lock:
+			return self._data.get(key, default)
+
+	def clear(self) -> None:
+		with self._lock:
+			self._data.clear()

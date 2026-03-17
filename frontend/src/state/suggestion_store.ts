@@ -1,8 +1,67 @@
-// Zustand or React context store for AI suggestion state.
-//
-// Responsibilities:
-// - Hold the current list of AI-generated suggestion strings as reactive state
-// - Expose addSuggestion(text: string) called by suggestion_stream.ts
-// - Expose clearSuggestions() called when a new context window begins
-// - Track loading state (true while the backend is generating suggestions)
-// - Used by suggestion_panel.tsx to render the suggestion list
+import { useSyncExternalStore } from "react";
+
+type SuggestionState = {
+	suggestions: string[];
+	loading: boolean;
+	raw: string;
+};
+
+let state: SuggestionState = {
+	suggestions: [],
+	loading: false,
+	raw: ""
+};
+
+const listeners = new Set<() => void>();
+
+function emit(): void {
+	for (const listener of listeners) {
+		listener();
+	}
+}
+
+export const suggestionStore = {
+	setLoading(loading: boolean): void {
+		if (state.loading === loading) {
+			return;
+		}
+		state = {
+			...state,
+			loading
+		};
+		emit();
+	},
+
+	setSuggestions(items: string[], raw = ""): void {
+		state = {
+			...state,
+			suggestions: [...items],
+			raw,
+			loading: false
+		};
+		emit();
+	},
+
+	clearSuggestions(): void {
+		state = {
+			...state,
+			suggestions: [],
+			raw: "",
+			loading: false
+		};
+		emit();
+	},
+
+	getSnapshot(): SuggestionState {
+		return state;
+	},
+
+	subscribe(listener: () => void): () => void {
+		listeners.add(listener);
+		return () => listeners.delete(listener);
+	}
+};
+
+export function useSuggestionStore(): SuggestionState {
+	return useSyncExternalStore(suggestionStore.subscribe, suggestionStore.getSnapshot, suggestionStore.getSnapshot);
+}
