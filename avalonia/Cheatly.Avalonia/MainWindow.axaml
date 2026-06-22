@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        x:Class="Cheatly.Avalonia.MainWindow"
+        Width="1100"
+        Height="760"
+        Title="Cheatly - Avalonia"
+        mc:Ignorable="d">
+
+    <Grid Margin="16" RowDefinitions="Auto,Auto,*,Auto" ColumnDefinitions="*">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Backend:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <TextBlock Name="BackendStatusText" Text="Disconnected" VerticalAlignment="Center"/>
+            <Button Content="Connect" Click="OnConnectClicked"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+            <Button Content="Start Transcription" Click="OnStartTranscriptionClicked"/>
+            <Button Content="Stop Transcription" Click="OnStopTranscriptionClicked"/>
+            <Button Content="Reset Session" Click="OnResetSessionClicked"/>
+        </StackPanel>
+
+        <Grid Grid.Row="2" ColumnDefinitions="2*,*">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Transcript Input" FontWeight="SemiBold" FontSize="16"/>
+                <TextBox Name="TranscriptInputBox" Watermark="Type transcript text" Height="120" AcceptsReturn="True" TextWrapping="Wrap"/>
+                <Button Content="Send to Backend" HorizontalAlignment="Left" Click="OnSendTranscriptClicked"/>
+                <TextBlock Text="Transcript Stream" FontWeight="SemiBold" FontSize="16" Margin="0,8,0,0"/>
+                <ListBox Name="TranscriptList" Height="320"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Spacing="8" Margin="12,0,0,0">
+                <TextBlock Text="Output" FontWeight="SemiBold" FontSize="16"/>
+                <ListBox Name="OutputList" Height="470"/>
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Grid.Row="3" Text="Avalonia desktop client." Opacity="0.8"/>
+    </Grid>
+</Window>

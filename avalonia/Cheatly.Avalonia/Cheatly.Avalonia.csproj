@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Cheatly.Avalonia</AssemblyName>
+    <RootNamespace>Cheatly.Avalonia</RootNamespace>
+    <!-- Allow WinRT async patterns -->
+    <CsWinRTAotOptimizerEnabled>false</CsWinRTAotOptimizerEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.1.5" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.1.5" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.5" />
+    <!-- WASAPI loopback capture (replaces Python pyaudiowpatch + Whisper) -->
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <!-- Speech recognition engine with custom AudioStream input -->
+    <PackageReference Include="System.Speech" Version="8.0.0" />
+  </ItemGroup>
+</Project>

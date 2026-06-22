@@ -1,0 +1,194 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Cheatly.Avalonia.SettingsWindow"
+        Title="Cheatly - Settings"
+        Width="620"
+        Height="780"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="Cheatly" FontSize="28" FontWeight="Bold" Foreground="White"/>
+            <TextBlock Text="Real-time conversation assistant" Foreground="#888888"/>
+        </StackPanel>
+
+        <!-- Connection Status -->
+        <Border Grid.Row="1" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel>
+                    <TextBlock Text="Backend Status" Foreground="#AAAAAA" FontSize="12"/>
+                    <TextBlock Name="StatusText" Text="Disconnected" Foreground="#FF6B6B" FontWeight="SemiBold"/>
+                </StackPanel>
+                <Button Grid.Column="1" 
+                        Name="ConnectButton"
+                        Content="Connect" 
+                        Background="#0078D4"
+                        Foreground="White"
+                        Padding="16,8"
+                        CornerRadius="4"
+                        Click="OnConnectClicked"/>
+            </Grid>
+        </Border>
+
+        <!-- LLM Provider Selection -->
+        <Border Grid.Row="2" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+            <StackPanel Spacing="10">
+                <TextBlock Text="LLM Provider" Foreground="White" FontWeight="SemiBold"/>
+                
+                <Grid ColumnDefinitions="*,12,*" RowDefinitions="Auto,8,Auto">
+                    <StackPanel Grid.Column="0" Grid.Row="0">
+                        <TextBlock Text="Provider" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox Name="ProviderCombo" 
+                                  Background="#333333"
+                                  Foreground="White"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="OnProviderChanged">
+                            <ComboBoxItem Content="OpenAI" Tag="openai"/>
+                            <ComboBoxItem Content="Anthropic" Tag="anthropic"/>
+                            <ComboBoxItem Content="Google Gemini" Tag="gemini"/>
+                            <ComboBoxItem Content="Ollama (Local)" Tag="ollama"/>
+                            <ComboBoxItem Content="Azure OpenAI" Tag="azure"/>
+                            <ComboBoxItem Content="Custom/Other" Tag="custom"/>
+                        </ComboBox>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="2" Grid.Row="0">
+                        <TextBlock Text="Model" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox Name="ModelCombo" 
+                                  Background="#333333"
+                                  Foreground="White"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="OnAnySelectionChanged"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2">
+                        <TextBlock Text="API Key" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Name="ApiKeyInput" 
+                                     PasswordChar="*"
+                                     Watermark="Enter your API key..."
+                                     Background="#333333"
+                                     Foreground="White"
+                                     CornerRadius="4"/>
+                            <Button Grid.Column="1" 
+                                    Name="ShowKeyButton"
+                                    Content="Show" 
+                                    Background="#444444"
+                                    Foreground="White"
+                                    Margin="8,0,0,0"
+                                    Padding="12,6"
+                                    CornerRadius="4"
+                                    Click="OnToggleKeyVisibility"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+                
+                <StackPanel Name="ApiBasePanel" IsVisible="False">
+                    <TextBlock Text="API Base URL (optional)" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox Name="ApiBaseInput" 
+                             Watermark="https://api.example.com/v1"
+                             Background="#333333"
+                             Foreground="White"
+                             CornerRadius="4"
+                             LostFocus="OnApiBaseChanged"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Fallback Model -->
+        <Border Grid.Row="3" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Fallback Model (Optional)" Foreground="White" FontWeight="SemiBold"/>
+                <TextBlock Text="Used when primary model fails" Foreground="#666666" FontSize="11"/>
+                
+                <Grid ColumnDefinitions="*,12,*">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Provider" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox Name="FallbackProviderCombo" 
+                                  Background="#333333"
+                                  Foreground="White"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="OnAnySelectionChanged">
+                            <ComboBoxItem Content="None" Tag="none" IsSelected="True"/>
+                            <ComboBoxItem Content="Ollama (Local)" Tag="ollama"/>
+                            <ComboBoxItem Content="OpenAI" Tag="openai"/>
+                            <ComboBoxItem Content="Anthropic" Tag="anthropic"/>
+                        </ComboBox>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Model" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox Name="FallbackModelCombo" 
+                                  Background="#333333"
+                                  Foreground="White"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="OnAnySelectionChanged">
+                            <ComboBoxItem Content="ollama/llama3"/>
+                            <ComboBoxItem Content="ollama/mistral"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Trigger Preset -->
+        <Border Grid.Row="4" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Trigger Preset" Foreground="White" FontWeight="SemiBold"/>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <RadioButton Name="PresetFast" Content="Fast" Foreground="White" GroupName="Preset" Checked="OnAnyPresetChecked"/>
+                    <RadioButton Name="PresetBalanced" Content="Balanced" Foreground="White" GroupName="Preset" IsChecked="True" Checked="OnAnyPresetChecked"/>
+                    <RadioButton Name="PresetAccurate" Content="Accurate" Foreground="White" GroupName="Preset" Checked="OnAnyPresetChecked"/>
+                </StackPanel>
+                <TextBlock Text="Fast: Lower latency. Balanced: Good tradeoff. Accurate: Waits longer for context." 
+                           Foreground="#666666" FontSize="11" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Audio Status -->
+        <Border Grid.Row="5" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Audio Capture" Foreground="White" FontWeight="SemiBold"/>
+                <TextBlock Name="AudioStatusText" Text="Detecting devices..." Foreground="#AAAAAA"/>
+                <CheckBox Name="CaptureExclusionToggle" Content="Hide overlay from screen capture" Foreground="White" IsChecked="True"/>
+            </StackPanel>
+        </Border>
+
+        <!-- RAG Documents -->
+        <Border Grid.Row="6" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+            <StackPanel Spacing="8">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="RAG Documents" Foreground="White" FontWeight="SemiBold"/>
+                    <Button Grid.Column="1" Content="+ Add" Background="#444444" Foreground="White" Padding="12,4" CornerRadius="4" Click="OnAddDocumentClicked"/>
+                </Grid>
+                <TextBlock Text="Add documents for context-aware suggestions" Foreground="#666666" FontSize="11"/>
+                <ListBox Name="DocumentsList" 
+                         Background="#252525" 
+                         MaxHeight="80"
+                         MinHeight="40"
+                         Foreground="White"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Spacer -->
+        <Grid Grid.Row="7"/>
+
+        <!-- Start Button -->
+        <Button Grid.Row="8" 
+                Name="StartButton"
+                Content="Start Session" 
+                HorizontalAlignment="Stretch"
+                Height="48"
+                FontSize="16"
+                FontWeight="SemiBold"
+                Background="#4CAF50"
+                Foreground="White"
+                CornerRadius="8"
+                Margin="0,10,0,0"
+                Click="OnStartSessionClicked"/>
+    </Grid>
+    </ScrollViewer>
+</Window>
