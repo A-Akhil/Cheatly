@@ -19,41 +19,40 @@ class RetrievedChunk:
 
 class KnowledgeBase:
     def __init__(self, sqlite_path: str, chunk_size: int = 700, chunk_overlap: int = 120) -> None:
-        self.db_path = Path(sqlite_path)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.db_path = sqlite_path  # keep as str so :memory: works
+        if sqlite_path != ":memory:":
+            path = Path(sqlite_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self._lock = threading.Lock()
+        # Single persistent connection — safer for :memory: and avoids reconnect overhead
+        self._conn = sqlite3.connect(sqlite_path, check_same_thread=False)
+        self._conn.row_factory = sqlite3.Row
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        return conn
-
     def _init_db(self) -> None:
-        with self._connect() as conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS documents (
-                    id TEXT PRIMARY KEY,
-                    source_name TEXT NOT NULL,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-                """
+        self._conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS documents (
+                id TEXT PRIMARY KEY,
+                source_name TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-            conn.execute(
-                """
-                CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
-                    chunk_id UNINDEXED,
-                    document_id UNINDEXED,
-                    source_name,
-                    chunk_text,
-                    tokenize='porter unicode61'
-                )
-                """
+            """
+        )
+        self._conn.execute(
+            """
+            CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
+                chunk_id UNINDEXED,
+                document_id UNINDEXED,
+                source_name,
+                chunk_text,
+                tokenize='porter unicode61'
             )
-            conn.commit()
+            """
+        )
+        self._conn.commit()
 
     def ingest_text(self, source_name: str, text: str) -> str:
         clean = text.strip()
@@ -64,31 +63,29 @@ class KnowledgeBase:
         chunks = self._chunk_text(clean)
 
         with self._lock:
-            with self._connect() as conn:
-                conn.execute("INSERT INTO documents(id, source_name) VALUES(?, ?)", (doc_id, source_name))
-                conn.executemany(
-                    "INSERT INTO chunks_fts(chunk_id, document_id, source_name, chunk_text) VALUES(?, ?, ?, ?)",
-                    [
-                        (str(uuid.uuid4()), doc_id, source_name, chunk)
-                        for chunk in chunks
-                    ],
-                )
-                conn.commit()
+            self._conn.execute("INSERT INTO documents(id, source_name) VALUES(?, ?)", (doc_id, source_name))
+            self._conn.executemany(
+                "INSERT INTO chunks_fts(chunk_id, document_id, source_name, chunk_text) VALUES(?, ?, ?, ?)",
+                [
+                    (str(uuid.uuid4()), doc_id, source_name, chunk)
+                    for chunk in chunks
+                ],
+            )
+            self._conn.commit()
         return doc_id
 
     def list_documents(self) -> list[dict]:
-        with self._connect() as conn:
-            rows = conn.execute(
+        with self._lock:
+            rows = self._conn.execute(
                 "SELECT id, source_name, created_at FROM documents ORDER BY created_at DESC"
             ).fetchall()
             return [dict(row) for row in rows]
 
     def delete_document(self, document_id: str) -> None:
         with self._lock:
-            with self._connect() as conn:
-                conn.execute("DELETE FROM documents WHERE id = ?", (document_id,))
-                conn.execute("DELETE FROM chunks_fts WHERE document_id = ?", (document_id,))
-                conn.commit()
+            self._conn.execute("DELETE FROM documents WHERE id = ?", (document_id,))
+            self._conn.execute("DELETE FROM chunks_fts WHERE document_id = ?", (document_id,))
+            self._conn.commit()
 
     def search(self, query: str, top_k: int = 5) -> list[RetrievedChunk]:
         q = query.strip()
@@ -96,8 +93,8 @@ class KnowledgeBase:
             return []
 
         fts_query = self._to_fts_query(q)
-        with self._connect() as conn:
-            rows = conn.execute(
+        with self._lock:
+            rows = self._conn.execute(
                 """
                 SELECT chunk_id, document_id, source_name, chunk_text, bm25(chunks_fts) AS score
                 FROM chunks_fts

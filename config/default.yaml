@@ -1,5 +1,5 @@
 # Application-level default configuration.
-# This file is the top-level config read by the Tauri app and passed to the backend.
+# This file is the top-level config consumed by the Avalonia client and backend.
 # It mirrors the structure of backend/config/default_config.yaml and serves
 # as the single source of truth for first-run defaults.
 #

@@ -5,19 +5,51 @@ app:
     - "*"
 
 speech_recognition:
-  enabled: false
-  model_size: "base"
+  enabled: true
+  preload_on_startup: true
+  require_preload_success: false
+  model_size: "tiny.en"
+  fallback_model_sizes:
+    - "tiny"
+    - "base"
+  model_cache_dir: "./models/whisper"
+  device: "cpu"
+  compute_type: "int8_float32"
+  fallback_compute_types:
+    - "float32"
+  cpu_threads: 4
+  num_workers: 1
+  use_mkl: false
+  isolate_process: true
   language: "en"
-  chunk_duration_ms: 800
+  chunk_duration_ms: 400
 
 model_provider:
-  provider: "google"
-  google_model: "gemma-3-1b-it"
-  google_fallback_model: "gemini-3-flash-preview"
-  ollama_model: "llama3"
-  ollama_host: "http://127.0.0.1:11434"
+  provider: "ollama"
+  model: "ollama/tinyllama"
+  fallback_model: "ollama/llama3"
+  api_base: "http://127.0.0.1:11434"
   temperature: 0.3
-  max_output_tokens: 512
+  max_tokens: 1024
+
+trigger:
+  preset: "balanced"
+  presets:
+    fast:
+      stability_window_ms: 350
+      final_silence_ms: 700
+      min_prefetch_interval_ms: 600
+      extra_prefetch_delta_tokens: 6
+    balanced:
+      stability_window_ms: 500
+      final_silence_ms: 950
+      min_prefetch_interval_ms: 800
+      extra_prefetch_delta_tokens: 0
+    accurate:
+      stability_window_ms: 700
+      final_silence_ms: 1250
+      min_prefetch_interval_ms: 1000
+      extra_prefetch_delta_tokens: 0
 
 rag:
   enabled: true
@@ -33,5 +65,10 @@ audio:
 
 logging:
   level: "INFO"
+  app_level: "DEBUG"
   log_to_file: true
   file_path: "./backend/logging/backend.log"
+  enable_faulthandler: true
+  fault_file_path: "./backend/logging/backend_fault.log"
+  worker_fault_file_path: "./backend/logging/whisper_worker_fault.log"
+  system_diag_file_path: "./backend/logging/system_diagnostics.log"

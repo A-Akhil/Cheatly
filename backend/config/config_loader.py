@@ -74,7 +74,7 @@ class ConfigLoader:
 			config.setdefault("model_provider", {})["provider"] = provider_override.strip().lower()
 
 		if model_override:
-			config.setdefault("model_provider", {})["google_model"] = model_override.strip()
+			config.setdefault("model_provider", {})["model"] = model_override.strip()
 
 		if gemini_key:
 			config.setdefault("model_provider", {})["_gemini_key_present"] = True

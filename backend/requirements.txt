@@ -2,9 +2,13 @@ fastapi
 uvicorn[standard]
 pydantic
 PyYAML
-google-genai
+litellm
 requests
 python-multipart
 numpy
 sounddevice
+ctranslate2
 faster-whisper
+pyaudiowpatch
+pytest
+httpx

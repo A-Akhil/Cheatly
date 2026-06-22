@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
+logger = logging.getLogger(__name__)
 
 
 class WebSocketHub:
@@ -13,9 +16,11 @@ class WebSocketHub:
 	async def connect(self, ws: WebSocket) -> None:
 		await ws.accept()
 		self._connections.add(ws)
+		logger.info(f"WebSocket connected, total: {len(self._connections)}")
 
 	def disconnect(self, ws: WebSocket) -> None:
 		self._connections.discard(ws)
+		logger.info(f"WebSocket disconnected, total: {len(self._connections)}")
 
 	async def broadcast(self, payload: dict[str, Any]) -> None:
 		disconnected: list[WebSocket] = []
@@ -28,6 +33,10 @@ class WebSocketHub:
 		for ws in disconnected:
 			self.disconnect(ws)
 
+	@property
+	def connection_count(self) -> int:
+		return len(self._connections)
+
 
 def build_websocket_router(hub: WebSocketHub) -> APIRouter:
 	router = APIRouter()
@@ -37,7 +46,36 @@ def build_websocket_router(hub: WebSocketHub) -> APIRouter:
 		await hub.connect(websocket)
 		try:
 			while True:
-				await websocket.receive_text()
+				data = await websocket.receive_text()
+				try:
+					msg = json.loads(data)
+					msg_type = msg.get("type", "")
+
+					if msg_type == "ping":
+						await websocket.send_text(json.dumps({"type": "pong"}))
+
+				except json.JSONDecodeError:
+					pass
+		except WebSocketDisconnect:
+			hub.disconnect(websocket)
+		except Exception:
+			hub.disconnect(websocket)
+
+	@router.websocket("/ws/suggestions")
+	async def ws_suggestions_endpoint(websocket: WebSocket) -> None:
+		await hub.connect(websocket)
+		try:
+			while True:
+				data = await websocket.receive_text()
+				try:
+					msg = json.loads(data)
+					msg_type = msg.get("type", "")
+
+					if msg_type == "ping":
+						await websocket.send_text(json.dumps({"type": "pong"}))
+
+				except json.JSONDecodeError:
+					pass
 		except WebSocketDisconnect:
 			hub.disconnect(websocket)
 		except Exception:
