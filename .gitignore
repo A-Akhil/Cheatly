@@ -1,6 +1,7 @@
 # Internal agent workspace files
 rough_note.md
 idea.md
+idea-updated.md
 
 # User configuration (contains API keys and personal preferences)
 config/user.yaml
