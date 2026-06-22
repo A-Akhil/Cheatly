@@ -20,8 +20,9 @@ __pycache__/
 dist/
 build/
 target/
-frontend/dist/
-src-tauri/target/
+avalonia/**/bin/
+avalonia/**/obj/
+.vs/
 
 # Node modules
 node_modules/
@@ -48,3 +49,6 @@ Thumbs.db
 # IDE
 .vscode/settings.json
 .idea/
+
+# Temporary
+docs/
