@@ -17,6 +17,8 @@ public partial class OverlayWindow : Window
 {
     private readonly OverlayViewModel _viewModel;
     private readonly bool _enableCaptureExclusion;
+    private readonly DispatcherTimer _timer;
+    private int _secondsElapsed;
 
     public event Action? SessionStopped;
     public event Action<string>? ForceSendRequested;
@@ -39,6 +41,26 @@ public partial class OverlayWindow : Window
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
         Opened += OnWindowOpened;
+        Closed += OnWindowClosed;
+
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _timer.Tick += (s, e) => 
+        {
+            _secondsElapsed++;
+            var mins = _secondsElapsed / 60;
+            var secs = _secondsElapsed % 60;
+            var timerText = this.FindControl<TextBlock>("TimerText");
+            if (timerText != null)
+            {
+                timerText.Text = $"{mins:D2}:{secs:D2}";
+            }
+        };
+    }
+
+    private void OnWindowClosed(object? sender, EventArgs e)
+    {
+        _timer.Stop();
+        SessionStopped?.Invoke();
     }
 
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -58,7 +80,13 @@ public partial class OverlayWindow : Window
         Dispatcher.UIThread.Post(() =>
         {
             var color = _viewModel.IsConnected ? "#4CAF50" : "#FF6B6B";
-            ConnectionIndicator.Fill = new SolidColorBrush(Color.Parse(color));
+            var brush = new SolidColorBrush(Color.Parse(color));
+            
+            var indicator = this.FindControl<Border>("ConnectionIndicator");
+            if (indicator != null)
+            {
+                indicator.Background = brush;
+            }
         });
     }
 
@@ -80,6 +108,7 @@ public partial class OverlayWindow : Window
         }
         PositionTopRight();
         UpdateConnectionIndicator();
+        _timer.Start();
     }
 
     private void ApplyCaptureExclusion()
@@ -114,17 +143,9 @@ public partial class OverlayWindow : Window
         }
     }
 
-    private void OnCloseClicked(object? sender, RoutedEventArgs e)
-    {
-        _viewModel.ClearSession();
-        SessionStopped?.Invoke();
-        Close();
-    }
-
     private void OnBackClicked(object? sender, RoutedEventArgs e)
     {
         _viewModel.ClearSession();
-        SessionStopped?.Invoke();
         Close();
     }
 

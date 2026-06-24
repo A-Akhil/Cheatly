@@ -196,6 +196,7 @@ public partial class SettingsWindow : Window
             StatusText.Text = "Connected";
             StatusText.Foreground = new global::Avalonia.Media.SolidColorBrush(
                 global::Avalonia.Media.Color.Parse("#4CAF50"));
+            UpdateButtonVisibility();
 
             await SyncSettings();
             await LoadDocuments();
@@ -291,30 +292,44 @@ public partial class SettingsWindow : Window
 
     private async void OnOverlaySessionStopped()
     {
-        // Stop mic STT
-        if (_windowsSpeech != null)
-        {
-            _windowsSpeech.FragmentReady        -= OnSpeechFragment;
-            _windowsSpeech.FinalTranscriptReady -= OnSpeechFinal;
-            _windowsSpeech.ErrorOccurred        -= OnSpeechError;
-            await _windowsSpeech.StopAsync();
-            await _windowsSpeech.DisposeAsync();
-            _windowsSpeech = null;
-        }
-
-        // Stop loopback STT
-        if (_loopbackSpeech != null)
-        {
-            _loopbackSpeech.FragmentReady        -= OnLoopbackFragment;
-            _loopbackSpeech.FinalTranscriptReady -= OnSpeechFinal;
-            _loopbackSpeech.ErrorOccurred        -= OnSpeechError;
-            await _loopbackSpeech.StopAsync();
-            await _loopbackSpeech.DisposeAsync();
-            _loopbackSpeech = null;
-        }
-
+        // Show the settings window IMMEDIATELY — don't wait for cleanup
+        CheatlyLog.Info("[OnOverlaySessionStopped] Session stopped — showing settings window");
         _overlayWindow = null;
-        Dispatcher.UIThread.Post(() => Show());
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            CheatlyLog.Info("[OnOverlaySessionStopped] Calling Show() + Activate()");
+            Show();
+            Activate();
+        });
+
+        try
+        {
+            // Stop mic STT
+            if (_windowsSpeech != null)
+            {
+                _windowsSpeech.FragmentReady        -= OnSpeechFragment;
+                _windowsSpeech.FinalTranscriptReady -= OnSpeechFinal;
+                _windowsSpeech.ErrorOccurred        -= OnSpeechError;
+                await _windowsSpeech.StopAsync();
+                await _windowsSpeech.DisposeAsync();
+                _windowsSpeech = null;
+            }
+
+            // Stop loopback STT
+            if (_loopbackSpeech != null)
+            {
+                _loopbackSpeech.FragmentReady        -= OnLoopbackFragment;
+                _loopbackSpeech.FinalTranscriptReady -= OnSpeechFinal;
+                _loopbackSpeech.ErrorOccurred        -= OnSpeechError;
+                await _loopbackSpeech.StopAsync();
+                await _loopbackSpeech.DisposeAsync();
+                _loopbackSpeech = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            CheatlyLog.Info($"[OnOverlaySessionStopped] Cleanup error: {ex.Message}");
+        }
 
         // Pre-warm the mic again for the next session
         _windowsSpeech = new WindowsSpeechService();
@@ -385,6 +400,23 @@ public partial class SettingsWindow : Window
         });
     }
 
+    private void UpdateButtonVisibility()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_isConnected)
+            {
+                ConnectButton.IsVisible = false;
+                StartButton.IsVisible = true;
+            }
+            else
+            {
+                ConnectButton.IsVisible = true;
+                StartButton.IsVisible = false;
+            }
+        });
+    }
+
     private void OnStatusChanged(string status)
     {
         Dispatcher.UIThread.Post(() =>
@@ -409,6 +441,8 @@ public partial class SettingsWindow : Window
                 StatusText.Foreground = new global::Avalonia.Media.SolidColorBrush(
                     global::Avalonia.Media.Color.Parse("#FFA500"));
             }
+            
+            UpdateButtonVisibility();
         });
     }
 
@@ -685,5 +719,18 @@ public partial class SettingsWindow : Window
         _webSocketClient.StopReconnecting();
         _cancellation.Cancel();
         await _webSocketClient.DisposeAsync();
+    }
+
+    private void OnHeaderPointerPressed(object? sender, global::Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
+    }
+
+    private void OnCloseClicked(object? sender, RoutedEventArgs e)
+    {
+        Close();
     }
 }
