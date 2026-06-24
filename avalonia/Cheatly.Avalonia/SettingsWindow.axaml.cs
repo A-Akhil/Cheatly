@@ -141,6 +141,10 @@ public partial class SettingsWindow : Window
 
     private async Task AutoConnectAsync()
     {
+        // Pre-warm the mic in the background while waiting for connection
+        _windowsSpeech = new WindowsSpeechService();
+        _ = _windowsSpeech.InitializeAsync();
+
         StatusText.Text = "Waiting for Backend...";
         StatusText.Foreground = new global::Avalonia.Media.SolidColorBrush(global::Avalonia.Media.Color.Parse("#FFA500"));
         ConnectButton.IsEnabled = false;
@@ -230,46 +234,7 @@ public partial class SettingsWindow : Window
 
         await SyncSettings();
 
-        // ── Start Mic: Windows.Media.SpeechRecognition (~200ms latency) ────────────
-        CheatlyLog.Info("Starting WindowsSpeechService (mic)...");
-        _windowsSpeech = new WindowsSpeechService();
-        _windowsSpeech.FragmentReady     += OnSpeechFragment;
-        _windowsSpeech.FinalTranscriptReady += OnSpeechFinal;
-        _windowsSpeech.ErrorOccurred     += OnSpeechError;
-        var micStarted = await _windowsSpeech.StartAsync();
-        CheatlyLog.Info($"WindowsSpeechService started={micStarted}");
-        if (!micStarted)
-        {
-            _windowsSpeech = null;
-            StatusText.Text = "Enable Online Speech Recognition in Windows Settings";
-            StatusText.Foreground = new global::Avalonia.Media.SolidColorBrush(global::Avalonia.Media.Color.Parse("#FF6B6B"));
-            
-            // Pop open settings
-            try
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "ms-settings:privacy-speech",
-                    UseShellExecute = true
-                });
-            }
-            catch { }
-            return; // Abort session start
-        }
-
-        // ── Start System audio: NAudio WASAPI loopback → System.Speech (~400ms) ────
-        CheatlyLog.Info("Starting LoopbackSpeechService (system audio)...");
-        _loopbackSpeech = new LoopbackSpeechService();
-        _loopbackSpeech.FragmentReady       += OnLoopbackFragment;
-        _loopbackSpeech.FinalTranscriptReady += OnSpeechFinal;
-        _loopbackSpeech.ErrorOccurred       += OnSpeechError;
-        var loopStarted = await _loopbackSpeech.StartAsync();
-        CheatlyLog.Info($"LoopbackSpeechService started={loopStarted}");
-        if (!loopStarted) _loopbackSpeech = null;
-
-        CheatlyLog.Info($"Session started — log file: {CheatlyLog.LogFilePath}");
-
-        // Now that services started successfully, show the overlay
+        // Show overlay instantly
         bool enableCaptureExclusion = CaptureExclusionToggle.IsChecked == true;
         _overlayWindow = new OverlayWindow(enableCaptureExclusion);
         _overlayWindow.SessionStopped += OnOverlaySessionStopped;
@@ -277,6 +242,51 @@ public partial class SettingsWindow : Window
         _overlayWindow.SetConnectionState(true);
         _overlayWindow.Show();
         Hide();
+
+        // ── Start Audio Services in Background ────────────────────────────────────
+        _ = Task.Run(async () =>
+        {
+            CheatlyLog.Info("Starting WindowsSpeechService (mic)...");
+            if (_windowsSpeech == null)
+            {
+                _windowsSpeech = new WindowsSpeechService();
+            }
+            _windowsSpeech.FragmentReady     += OnSpeechFragment;
+            _windowsSpeech.FinalTranscriptReady += OnSpeechFinal;
+            _windowsSpeech.ErrorOccurred     += OnSpeechError;
+            var micStarted = await _windowsSpeech.StartAsync();
+            CheatlyLog.Info($"WindowsSpeechService started={micStarted}");
+            if (!micStarted)
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    _windowsSpeech = null;
+                    StatusText.Text = "Enable Online Speech Recognition in Windows Settings";
+                    StatusText.Foreground = new global::Avalonia.Media.SolidColorBrush(global::Avalonia.Media.Color.Parse("#FF6B6B"));
+                    
+                    try
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = "ms-settings:privacy-speech",
+                            UseShellExecute = true
+                        });
+                    }
+                    catch { }
+                });
+            }
+
+            CheatlyLog.Info("Starting LoopbackSpeechService (system audio)...");
+            _loopbackSpeech = new LoopbackSpeechService();
+            _loopbackSpeech.FragmentReady       += OnLoopbackFragment;
+            _loopbackSpeech.FinalTranscriptReady += OnSpeechFinal;
+            _loopbackSpeech.ErrorOccurred       += OnSpeechError;
+            var loopStarted = await _loopbackSpeech.StartAsync();
+            CheatlyLog.Info($"LoopbackSpeechService started={loopStarted}");
+            if (!loopStarted) _loopbackSpeech = null;
+
+            CheatlyLog.Info($"Session started — log file: {CheatlyLog.LogFilePath}");
+        });
     }
 
     private async void OnOverlaySessionStopped()
@@ -305,6 +315,10 @@ public partial class SettingsWindow : Window
 
         _overlayWindow = null;
         Dispatcher.UIThread.Post(() => Show());
+
+        // Pre-warm the mic again for the next session
+        _windowsSpeech = new WindowsSpeechService();
+        _ = _windowsSpeech.InitializeAsync();
     }
 
     // ── Speech Recognition handlers ───────────────────────────────────────────

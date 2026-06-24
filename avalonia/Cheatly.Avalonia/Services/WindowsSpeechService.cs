@@ -53,14 +53,12 @@ public sealed class WindowsSpeechService : IAsyncDisposable
         }
     }
 
-    public async Task<bool> StartAsync()
+    public async Task InitializeAsync()
     {
-        CheatlyLog.Info("StartAsync called");
-        if (IsRunning) { CheatlyLog.Warn("Already running"); return true; }
-
+        if (_recognizer != null) return;
+        CheatlyLog.Info("InitializeAsync: Pre-warming SpeechRecognizer...");
         try
         {
-            // Try en-US, fall back to system language
             SpeechRecognizer recognizer;
             try
             {
@@ -75,21 +73,34 @@ public sealed class WindowsSpeechService : IAsyncDisposable
             }
 
             _recognizer = recognizer;
-
-            // Force the OS to finalize phrases quickly when the user pauses
             _recognizer.Timeouts.EndSilenceTimeout = TimeSpan.FromMilliseconds(500);
 
             CheatlyLog.Info("Compiling constraints (free dictation)...");
             var compileResult = await _recognizer.CompileConstraintsAsync().AsTask();
             CheatlyLog.Info($"CompileConstraints status = {compileResult.Status}");
+        }
+        catch (Exception ex)
+        {
+            CheatlyLog.Error(ex, "InitializeAsync failed");
+            _recognizer?.Dispose();
+            _recognizer = null;
+        }
+    }
 
-            if (compileResult.Status != SpeechRecognitionResultStatus.Success)
+    public async Task<bool> StartAsync()
+    {
+        CheatlyLog.Info("StartAsync called");
+        if (IsRunning) { CheatlyLog.Warn("Already running"); return true; }
+
+        try
+        {
+            if (_recognizer == null)
             {
-                var msg = $"Grammar compilation failed: {compileResult.Status}";
-                CheatlyLog.Error(msg);
-                ErrorOccurred?.Invoke(msg);
-                _recognizer.Dispose();
-                _recognizer = null;
+                await InitializeAsync();
+            }
+
+            if (_recognizer == null)
+            {
                 return false;
             }
 
@@ -248,6 +259,24 @@ public sealed class WindowsSpeechService : IAsyncDisposable
             var oldCts = Interlocked.Exchange(ref _silenceCts, null);
             oldCts?.Cancel();
             oldCts?.Dispose();
+
+            // Flush any accumulated text that was waiting for the silence timer
+            string? forcedFinal = null;
+            lock (_lock)
+            {
+                if (_accumulated.Length > 0)
+                {
+                    forcedFinal = _accumulated.ToString().Trim();
+                    _accumulated.Clear();
+                    _lastResultText = null;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(forcedFinal))
+            {
+                CheatlyLog.Info($"Session restarting/stopping — flushing final transcript: {repr(forcedFinal)}");
+                FinalTranscriptReady?.Invoke(forcedFinal);
+            }
 
             _recognizer.HypothesisGenerated -= OnHypothesisGenerated;
             _recognizer.ContinuousRecognitionSession.ResultGenerated -= OnResultGenerated;
