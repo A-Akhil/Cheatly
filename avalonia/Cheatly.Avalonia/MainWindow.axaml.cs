@@ -20,6 +20,7 @@ public partial class MainWindow : Window
         _viewModel.BackendStatusChanged += OnBackendStatusChanged;
 
         Closed += async (_, _) => await _viewModel.DisposeAsync();
+        Loaded += async (_, _) => await _viewModel.AutoConnectAsync();
     }
 
     private async void OnConnectClicked(object? sender, RoutedEventArgs e)

@@ -58,6 +58,8 @@ public partial class SettingsWindow : Window
 
         Closed += OnWindowClosed;
 
+        Loaded += async (_, _) => await AutoConnectAsync();
+
         _ = RefreshAudioStatusAsync();
         _ = LoadDocuments();
     }
@@ -135,6 +137,24 @@ public partial class SettingsWindow : Window
         _apiKeyVisible = !_apiKeyVisible;
         ApiKeyInput.PasswordChar = _apiKeyVisible ? '\0' : '*';
         ShowKeyButton.Content = _apiKeyVisible ? "Hide" : "Show";
+    }
+
+    private async Task AutoConnectAsync()
+    {
+        StatusText.Text = "Waiting for Backend...";
+        StatusText.Foreground = new global::Avalonia.Media.SolidColorBrush(global::Avalonia.Media.Color.Parse("#FFA500"));
+        ConnectButton.IsEnabled = false;
+
+        while (!_cancellation.IsCancellationRequested)
+        {
+            var isHealthy = await _backendClient.CheckHealthAsync(_cancellation.Token);
+            if (isHealthy)
+            {
+                OnConnectClicked(null, new RoutedEventArgs());
+                break;
+            }
+            try { await Task.Delay(2000, _cancellation.Token); } catch { break; }
+        }
     }
 
     private async void OnConnectClicked(object? sender, RoutedEventArgs e)

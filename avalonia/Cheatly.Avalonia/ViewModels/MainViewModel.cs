@@ -30,6 +30,23 @@ public sealed class MainViewModel : IAsyncDisposable
         _cancellation = new CancellationTokenSource();
     }
 
+    public async Task AutoConnectAsync()
+    {
+        SetStatus("Waiting for Backend...");
+        while (!_cancellation.IsCancellationRequested)
+        {
+            var isHealthy = await _backendClient.CheckHealthAsync(_cancellation.Token);
+            if (isHealthy)
+            {
+                _ = Task.Run(async () => await _webSocketClient.ConnectAndListenAsync(_cancellation.Token));
+                SetStatus("Connected");
+                break;
+            }
+            SetStatus("Waiting for Backend...");
+            try { await Task.Delay(2000, _cancellation.Token); } catch { break; }
+        }
+    }
+
     public async Task ConnectAsync()
     {
         var isHealthy = await _backendClient.CheckHealthAsync(_cancellation.Token);
