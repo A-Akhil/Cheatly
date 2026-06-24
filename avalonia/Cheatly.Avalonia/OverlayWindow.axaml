@@ -2,120 +2,224 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Cheatly.Avalonia.OverlayWindow"
         Title="Cheatly"
-        Width="320"
-        Height="400"
-        MinWidth="280"
+        Width="360"
+        Height="500"
+        MinWidth="320"
         MinHeight="200"
         CanResize="True"
         Topmost="True"
         ShowInTaskbar="False"
         WindowStartupLocation="Manual"
-        SystemDecorations="BorderOnly"
-        Background="#1E1E1E"
+        SystemDecorations="None"
+        Background="Transparent"
         TransparencyLevelHint="AcrylicBlur">
 
-    <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" Margin="8">
-        <!-- Drag handle / header -->
+    <Window.Styles>
+        <!-- Blinking dot animation -->
+        <Style Selector="Border.RecordingDot">
+            <Style.Animations>
+                <Animation Duration="0:0:2" IterationCount="Infinite">
+                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1.0"/></KeyFrame>
+                    <KeyFrame Cue="50%"><Setter Property="Opacity" Value="0.3"/></KeyFrame>
+                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1.0"/></KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Wave bars — each bar has its own animation with a unique Delay -->
+        <Style Selector="Border.Wave1">
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Background" Value="{DynamicResource Primary}"/>
+            <Style.Animations>
+                <Animation Duration="0:0:1" IterationCount="Infinite" PlaybackDirection="Alternate" Delay="0:0:0">
+                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.4"/></KeyFrame>
+                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1.0"/></KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="Border.Wave2">
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Background" Value="{DynamicResource Primary}"/>
+            <Style.Animations>
+                <Animation Duration="0:0:1" IterationCount="Infinite" PlaybackDirection="Alternate" Delay="0:0:0.15">
+                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.4"/></KeyFrame>
+                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1.0"/></KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="Border.Wave3">
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Background" Value="{DynamicResource Primary}"/>
+            <Style.Animations>
+                <Animation Duration="0:0:1" IterationCount="Infinite" PlaybackDirection="Alternate" Delay="0:0:0.3">
+                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.4"/></KeyFrame>
+                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1.0"/></KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="Border.Wave4">
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Background" Value="{DynamicResource Primary}"/>
+            <Style.Animations>
+                <Animation Duration="0:0:1" IterationCount="Infinite" PlaybackDirection="Alternate" Delay="0:0:0.1">
+                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.4"/></KeyFrame>
+                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1.0"/></KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="Border.Wave5">
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Background" Value="{DynamicResource Primary}"/>
+            <Style.Animations>
+                <Animation Duration="0:0:1" IterationCount="Infinite" PlaybackDirection="Alternate" Delay="0:0:0.45">
+                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.4"/></KeyFrame>
+                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1.0"/></KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="Border.Wave6">
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="Height" Value="12"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Background" Value="{DynamicResource Primary}"/>
+            <Style.Animations>
+                <Animation Duration="0:0:1" IterationCount="Infinite" PlaybackDirection="Alternate" Delay="0:0:0.25">
+                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.4"/></KeyFrame>
+                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1.0"/></KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*" Margin="12">
+        <!-- Floating Recording Pill -->
         <Border Grid.Row="0" 
-                Background="#2D2D2D" 
-                CornerRadius="4" 
-                Padding="8,4"
-                Cursor="Hand"
-                PointerPressed="OnHeaderPointerPressed">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
-                <!-- Connection indicator -->
-                <Ellipse Name="ConnectionIndicator"
-                         Width="8" Height="8"
-                         Fill="#4CAF50"
-                         Margin="0,0,8,0"
-                         VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1"
-                           Text="Cheatly" 
-                           FontWeight="SemiBold" 
-                           Foreground="#CCCCCC"
-                           VerticalAlignment="Center"/>
-                <TextBlock Name="ModeIndicator" 
-                           Grid.Column="2"
-                           Text="Ready" 
-                           Foreground="#888888"
-                           FontSize="11"
-                           Margin="8,0"
-                           VerticalAlignment="Center"/>
-                <Button Grid.Column="3" 
-                    Content="Back"
-                    MinWidth="42"
-                    Height="24"
-                    Margin="8,0,0,0"
-                    Background="#3A3A3A"
-                    Foreground="#CCCCCC"
-                    Click="OnBackClicked"/>
-                <Button Grid.Column="4" 
-                        Content="X" 
-                        Width="24" 
-                        Height="24"
-                    Margin="6,0,0,0"
-                        Background="Transparent"
-                        Foreground="#888888"
-                        Click="OnCloseClicked"/>
+                CornerRadius="32" 
+                Background="#E6131313" 
+                BorderBrush="#20FFFFFF" 
+                BorderThickness="0.5" 
+                PointerPressed="OnHeaderPointerPressed"
+                Cursor="SizeAll"
+                Height="64"
+                Margin="0,0,0,12"
+                BoxShadow="0 8 32 0 #66000000">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,0">
+                
+                <!-- Status & Mode -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Border Width="12" Height="12" CornerRadius="6" Background="{DynamicResource Error}" Classes="RecordingDot" Name="ConnectionIndicator" BoxShadow="0 0 12 0 #99ffb4ab"/>
+                    <TextBlock Name="ModeIndicator" Text="Ready" Foreground="{DynamicResource OnSurface}" FontWeight="SemiBold" FontSize="16" Width="60"/>
+                </StackPanel>
+
+                <!-- Animated Waveform -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Classes="Wave1"/>
+                    <Border Classes="Wave2"/>
+                    <Border Classes="Wave3"/>
+                    <Border Classes="Wave4"/>
+                    <Border Classes="Wave5"/>
+                    <Border Classes="Wave6"/>
+                </StackPanel>
+
+                <!-- Stop Action -->
+                <Button Grid.Column="2" 
+                        Width="36" Height="36" 
+                        CornerRadius="18" 
+                        Background="{DynamicResource ErrorContainer}" 
+                        Foreground="{DynamicResource OnErrorContainer}"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Padding="0"
+                        Click="OnBackClicked">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="{DynamicResource Error}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource OnError}"/>
+                        </Style>
+                    </Button.Styles>
+                    <!-- Stop Icon -->
+                    <PathIcon Data="M6,6H18V18H6Z" Width="16" Height="16"/>
+                </Button>
             </Grid>
         </Border>
 
-        <!-- Live Transcript -->
+        <!-- Transcript & Suggestions Area -->
         <Border Grid.Row="1" 
-                Background="#252525" 
-                CornerRadius="4" 
-                Margin="0,8,0,0"
-                Padding="8">
-            <ScrollViewer Name="TranscriptScroller" VerticalScrollBarVisibility="Auto">
-                <TextBlock Name="TranscriptText" 
-                           Text="{Binding Transcript, FallbackValue='Listening...'}" 
-                           Foreground="#AAAAAA"
-                           TextWrapping="Wrap"
-                           FontSize="12"/>
-            </ScrollViewer>
+                CornerRadius="16" 
+                Background="#B3131313" 
+                BorderBrush="#1AFFFFFF" 
+                BorderThickness="0.5" 
+                Padding="16"
+                BoxShadow="0 16 48 0 #80000000">
+            <Grid RowDefinitions="*,Auto,Auto,Auto">
+                
+                <!-- Live Transcript -->
+                <ScrollViewer Grid.Row="0" Name="TranscriptScroller" VerticalScrollBarVisibility="Auto" Margin="0,0,0,12">
+                    <TextBlock Name="TranscriptText" 
+                               Text="{Binding Transcript, FallbackValue='Listening...'}" 
+                               Foreground="{DynamicResource OnSurfaceVariant}"
+                               TextWrapping="Wrap"
+                               FontSize="14"
+                               LineHeight="20"/>
+                </ScrollViewer>
+                
+                <Border Grid.Row="1" Height="1" Background="#1AFFFFFF" Margin="-16,0,-16,12"/>
+
+                <!-- Suggestions -->
+                <ScrollViewer Grid.Row="2" Name="SuggestionsScroller" VerticalScrollBarVisibility="Auto" MaxHeight="200" Margin="0,0,0,12">
+                    <ItemsControl Name="SuggestionsList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#1A8083ff" BorderBrush="#338083ff" BorderThickness="0.5" CornerRadius="8" Padding="12,8" Margin="0,4">
+                                    <TextBlock Text="{Binding}" 
+                                               Foreground="{DynamicResource OnSurface}"
+                                               TextWrapping="Wrap"
+                                               FontSize="14"
+                                               LineHeight="20"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Text Input & Send -->
+                <Grid Grid.Row="3" ColumnDefinitions="*,Auto">
+                    <TextBox Name="UserInputBox" 
+                             Text="{Binding InputText, Mode=TwoWay}"
+                             Watermark="Add context or corrections..."
+                             Background="#33131313"
+                             Foreground="{DynamicResource OnSurface}"
+                             BorderBrush="#33FFFFFF"
+                             BorderThickness="0.5"
+                             CornerRadius="20"
+                             Padding="16,8"
+                             FontSize="14"/>
+                    
+                    <Button Grid.Column="1" 
+                            Margin="8,0,0,0"
+                            Width="36" Height="36"
+                            CornerRadius="18"
+                            Background="{DynamicResource Primary}"
+                            Foreground="{DynamicResource OnPrimary}"
+                            Click="OnSendClicked"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Padding="0">
+                        <!-- Send Icon (Arrow up) -->
+                        <PathIcon Data="M2,21L23,12L2,3V10L17,12L2,14V21Z" Width="16" Height="16"/>
+                    </Button>
+                </Grid>
+            </Grid>
         </Border>
-
-        <!-- Suggestions -->
-        <Border Grid.Row="2" 
-                Background="#2A2A2A" 
-                CornerRadius="4" 
-                Margin="0,8,0,0"
-                Padding="8"
-                MaxHeight="200">
-            <ScrollViewer Name="SuggestionsScroller" VerticalScrollBarVisibility="Auto">
-                <ItemsControl Name="SuggestionsList">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}" 
-                                       Foreground="#DDDDDD"
-                                       TextWrapping="Wrap"
-                                       Margin="0,2"
-                                       FontSize="12"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Border>
-
-        <!-- Text Input -->
-        <TextBox Name="UserInputBox" 
-                 Grid.Row="3"
-                 Text="{Binding InputText, Mode=TwoWay}"
-                 Watermark="Add context or corrections..."
-                 Background="#333333"
-                 Foreground="#FFFFFF"
-                 Margin="0,8,0,0"
-                 Height="32"
-                 CornerRadius="4"/>
-
-        <!-- Send Button -->
-        <Button Grid.Row="4" 
-                Content="Send" 
-                HorizontalAlignment="Stretch"
-                Margin="0,8,0,0"
-                Background="#0078D4"
-                Foreground="White"
-                CornerRadius="4"
-                Click="OnSendClicked"/>
     </Grid>
 </Window>

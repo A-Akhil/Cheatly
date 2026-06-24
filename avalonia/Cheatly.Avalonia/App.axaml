@@ -2,6 +2,27 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Cheatly.Avalonia.App"
              RequestedThemeVariant="Default">
+    <Application.Resources>
+        <SolidColorBrush x:Key="SurfaceDim" Color="#131313"/>
+        <SolidColorBrush x:Key="SurfaceContainerHighest" Color="#353534"/>
+        <SolidColorBrush x:Key="SurfaceContainerHigh" Color="#2a2a2a"/>
+        <SolidColorBrush x:Key="SurfaceContainer" Color="#201f1f"/>
+        <SolidColorBrush x:Key="SurfaceContainerLow" Color="#1c1b1b"/>
+        <SolidColorBrush x:Key="SurfaceContainerLowest" Color="#0e0e0e"/>
+        <SolidColorBrush x:Key="Background" Color="#131313"/>
+        <SolidColorBrush x:Key="OnSurface" Color="#e5e2e1"/>
+        <SolidColorBrush x:Key="OnSurfaceVariant" Color="#c7c4d7"/>
+        <SolidColorBrush x:Key="Primary" Color="#c0c1ff"/>
+        <SolidColorBrush x:Key="OnPrimary" Color="#1000a9"/>
+        <SolidColorBrush x:Key="PrimaryContainer" Color="#8083ff"/>
+        <SolidColorBrush x:Key="OnPrimaryContainer" Color="#0d0096"/>
+        <SolidColorBrush x:Key="Error" Color="#ffb4ab"/>
+        <SolidColorBrush x:Key="OnError" Color="#690005"/>
+        <SolidColorBrush x:Key="ErrorContainer" Color="#93000a"/>
+        <SolidColorBrush x:Key="OnErrorContainer" Color="#ffdad6"/>
+        <SolidColorBrush x:Key="Outline" Color="#908fa0"/>
+        <SolidColorBrush x:Key="OutlineVariant" Color="#464554"/>
+    </Application.Resources>
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>

@@ -2,193 +2,255 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Cheatly.Avalonia.SettingsWindow"
         Title="Cheatly - Settings"
-        Width="620"
-        Height="780"
+        Width="960"
+        Height="680"
         WindowStartupLocation="CenterScreen"
-        Background="#1E1E1E">
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-    <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="Cheatly" FontSize="28" FontWeight="Bold" Foreground="White"/>
-            <TextBlock Text="Real-time conversation assistant" Foreground="#888888"/>
-        </StackPanel>
+    <Window.Styles>
+        <!-- Glass Pill / Card Style -->
+        <Style Selector="Border.GlassCard">
+            <Setter Property="Background" Value="#66131313"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="BorderBrush" Value="#20FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0.5"/>
+            <Setter Property="ClipToBounds" Value="True"/>
+        </Style>
+        
+        <!-- ToggleSwitch Custom MD3-ish Style -->
+        <Style Selector="ToggleSwitch">
+            <Setter Property="OnContent" Value=""/>
+            <Setter Property="OffContent" Value=""/>
+        </Style>
+    </Window.Styles>
 
-        <!-- Connection Status -->
-        <Border Grid.Row="1" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel>
-                    <TextBlock Text="Backend Status" Foreground="#AAAAAA" FontSize="12"/>
-                    <TextBlock Name="StatusText" Text="Disconnected" Foreground="#FF6B6B" FontWeight="SemiBold"/>
-                </StackPanel>
-                <Button Grid.Column="1" 
-                        Name="ConnectButton"
-                        Content="Connect" 
-                        Background="#0078D4"
-                        Foreground="White"
-                        Padding="16,8"
-                        CornerRadius="4"
-                        Click="OnConnectClicked"/>
+    <Panel>
+        <!-- Ambient Glows -->
+        <Ellipse Fill="#1A494BD6" Width="600" Height="600" Margin="-200,-200,0,0" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Ellipse.Effect>
+                <BlurEffect Radius="100"/>
+            </Ellipse.Effect>
+        </Ellipse>
+        <Ellipse Fill="#0A919096" Width="800" Height="800" Margin="0,0,-300,-300" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Ellipse.Effect>
+                <BlurEffect Radius="120"/>
+            </Ellipse.Effect>
+        </Ellipse>
+
+        <Grid ColumnDefinitions="240,*">
+            <!-- Left Navigation (Sidebar) -->
+            <Border Grid.Column="0" Background="#99131313" BorderBrush="#1AFFFFFF" BorderThickness="0,0,0.5,0">
+                <Grid RowDefinitions="Auto,*,Auto" Margin="16,40,16,16">
+                    <!-- Brand -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="8,0,0,32">
+                        <Border Width="32" Height="32" CornerRadius="8" Background="#338083ff" BorderBrush="#20FFFFFF" BorderThickness="0.5">
+                            <PathIcon Data="M19,1L17.74,3.74L15,5L17.74,6.26L19,9L20.26,6.26L23,5L20.26,3.74M9,4L6.5,9.5L1,12L6.5,14.5L9,20L11.5,14.5L17,12L11.5,9.5M19,15L17.74,17.74L15,19L17.74,20.26L19,23L20.26,20.26L23,19L20.26,17.74" 
+                                      Foreground="{DynamicResource Primary}" Width="16" Height="16"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Cheatly" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource Primary}" LetterSpacing="0.5"/>
+                            <TextBlock Text="Premium AI" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource OnSurfaceVariant}" LetterSpacing="1"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Nav Items -->
+                    <StackPanel Grid.Row="1" Spacing="4">
+                        <Button Background="Transparent" Foreground="{DynamicResource OnSurfaceVariant}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="16,10" CornerRadius="8">
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <PathIcon Data="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4C22,2.89 21.1,2 20,2Z" Width="20" Height="20"/>
+                                <TextBlock Text="Assistant"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" Foreground="{DynamicResource OnSurfaceVariant}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="16,10" CornerRadius="8">
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <PathIcon Data="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" Width="20" Height="20"/>
+                                <TextBlock Text="History"/>
+                            </StackPanel>
+                        </Button>
+                        <!-- Active Setting Tab -->
+                        <Button Background="{DynamicResource PrimaryContainer}" Foreground="{DynamicResource OnPrimaryContainer}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="16,10" CornerRadius="8">
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <PathIcon Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" Width="20" Height="20"/>
+                                <TextBlock Text="Settings"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Connection Status -->
+                    <Border Grid.Row="2" Background="{DynamicResource SurfaceContainerHighest}" CornerRadius="12" Padding="12" BorderBrush="#1AFFFFFF" BorderThickness="0.5">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Ellipse Width="8" Height="8" Fill="{DynamicResource Error}" Name="StatusDot"/>
+                                <TextBlock Name="StatusText" Text="Disconnected" Foreground="{DynamicResource Error}" FontSize="12" FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <Button Name="ConnectButton" Content="Connect" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Background="{DynamicResource Primary}" Foreground="{DynamicResource OnPrimary}" CornerRadius="6" Padding="0,6" FontSize="12" FontWeight="SemiBold" Click="OnConnectClicked"/>
+                            <Button Name="StartButton" Content="Start Session" IsVisible="False" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Background="{DynamicResource Primary}" Foreground="{DynamicResource OnPrimary}" CornerRadius="6" Padding="0,6" FontSize="12" FontWeight="SemiBold" Click="OnStartSessionClicked"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Main Content Area -->
+            <Grid Grid.Column="1" RowDefinitions="Auto,*">
+                <!-- Header -->
+                <Border Grid.Row="0" Background="#4D0E0E0E" BorderBrush="#1AFFFFFF" BorderThickness="0,0,0,0.5" Padding="32,24" PointerPressed="OnHeaderPointerPressed">
+                    <Grid>
+                        <StackPanel Spacing="16">
+                            <TextBlock Text="Settings" FontSize="32" FontWeight="SemiBold" Foreground="{DynamicResource OnSurface}" LetterSpacing="-0.5"/>
+                            <Border Background="#33131313" CornerRadius="20" BorderBrush="#0DFFFFFF" BorderThickness="0.5" HorizontalAlignment="Left" Padding="4">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Button Content="AI Models" Classes="ActiveTab" Background="{DynamicResource SurfaceContainerHighest}" Foreground="{DynamicResource OnSurface}" CornerRadius="16" Padding="16,6" FontSize="14" FontWeight="Medium"/>
+                                    <Button Content="Behavior" Background="Transparent" Foreground="{DynamicResource OnSurfaceVariant}" CornerRadius="16" Padding="16,6" FontSize="14" FontWeight="Medium"/>
+                                    <Button Content="Privacy" Background="Transparent" Foreground="{DynamicResource OnSurfaceVariant}" CornerRadius="16" Padding="16,6" FontSize="14" FontWeight="Medium"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                        <!-- Close Button -->
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" CornerRadius="16" Background="Transparent" Foreground="{DynamicResource OnSurfaceVariant}" Margin="0,-8,-8,0" Click="OnCloseClicked">
+                            <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" Width="16" Height="16"/>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Scrollable Forms -->
+                <ScrollViewer Grid.Row="1" Padding="32">
+                    <StackPanel Spacing="32">
+                        
+                        <!-- AI Configuration -->
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="AI Configuration" FontSize="20" FontWeight="Medium" Foreground="{DynamicResource Primary}" Margin="12,0"/>
+                            
+                            <Border Classes="GlassCard">
+                                <StackPanel>
+                                    <!-- Primary Model -->
+                                    <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto" Margin="16" Background="Transparent">
+                                        <StackPanel Grid.Column="0" Grid.Row="0">
+                                            <TextBlock Text="Provider" Foreground="{DynamicResource OnSurfaceVariant}" FontSize="12" Margin="0,0,0,4"/>
+                                            <ComboBox Name="ProviderCombo" Background="#33131313" Foreground="{DynamicResource OnSurface}" HorizontalAlignment="Stretch" CornerRadius="6" SelectionChanged="OnProviderChanged">
+                                                <ComboBoxItem Content="OpenAI" Tag="openai"/>
+                                                <ComboBoxItem Content="Anthropic" Tag="anthropic"/>
+                                                <ComboBoxItem Content="Google Gemini" Tag="gemini"/>
+                                                <ComboBoxItem Content="Ollama (Local)" Tag="ollama"/>
+                                                <ComboBoxItem Content="Azure OpenAI" Tag="azure"/>
+                                                <ComboBoxItem Content="Custom/Other" Tag="custom"/>
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Grid.Row="0">
+                                            <TextBlock Text="Model" Foreground="{DynamicResource OnSurfaceVariant}" FontSize="12" Margin="0,0,0,4"/>
+                                            <ComboBox Name="ModelCombo" Background="#33131313" Foreground="{DynamicResource OnSurface}" HorizontalAlignment="Stretch" CornerRadius="6" SelectionChanged="OnAnySelectionChanged"/>
+                                        </StackPanel>
+                                        
+                                        <!-- API Base & Key -->
+                                        <StackPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Spacing="8">
+                                            <StackPanel Name="ApiBasePanel" IsVisible="False">
+                                                <TextBlock Text="API Base URL (optional)" Foreground="{DynamicResource OnSurfaceVariant}" FontSize="12" Margin="0,0,0,4"/>
+                                                <TextBox Name="ApiBaseInput" Watermark="https://api.example.com/v1" Background="#33131313" Foreground="{DynamicResource OnSurface}" CornerRadius="6" BorderThickness="0" LostFocus="OnApiBaseChanged"/>
+                                            </StackPanel>
+                                            
+                                            <StackPanel>
+                                                <TextBlock Text="API Key" Foreground="{DynamicResource OnSurfaceVariant}" FontSize="12" Margin="0,0,0,4"/>
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBox Name="ApiKeyInput" PasswordChar="*" Watermark="Enter your API key..." Background="#33131313" Foreground="{DynamicResource OnSurface}" CornerRadius="6" BorderThickness="0"/>
+                                                    <Button Grid.Column="1" Name="ShowKeyButton" Content="Show" Background="{DynamicResource SurfaceContainerHighest}" Foreground="{DynamicResource OnSurface}" Margin="8,0,0,0" Padding="12,6" CornerRadius="6" Click="OnToggleKeyVisibility"/>
+                                                </Grid>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                    
+                                    <Border Height="0.5" Background="#1AFFFFFF"/>
+                                    
+                                    <!-- Fallback -->
+                                    <StackPanel Margin="16">
+                                        <TextBlock Text="Fallback Model (Optional)" Foreground="{DynamicResource OnSurface}" FontSize="16" FontWeight="Medium" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Used automatically if the primary model fails or times out." Foreground="{DynamicResource OnSurfaceVariant}" FontSize="14" Margin="0,0,0,12"/>
+                                        
+                                        <Grid ColumnDefinitions="*,16,*">
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Provider" Foreground="{DynamicResource OnSurfaceVariant}" FontSize="12" Margin="0,0,0,4"/>
+                                                <ComboBox Name="FallbackProviderCombo" Background="#33131313" Foreground="{DynamicResource OnSurface}" HorizontalAlignment="Stretch" CornerRadius="6" SelectionChanged="OnAnySelectionChanged">
+                                                    <ComboBoxItem Content="None" Tag="none" IsSelected="True"/>
+                                                    <ComboBoxItem Content="Ollama (Local)" Tag="ollama"/>
+                                                    <ComboBoxItem Content="OpenAI" Tag="openai"/>
+                                                    <ComboBoxItem Content="Anthropic" Tag="anthropic"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="Model" Foreground="{DynamicResource OnSurfaceVariant}" FontSize="12" Margin="0,0,0,4"/>
+                                                <ComboBox Name="FallbackModelCombo" Background="#33131313" Foreground="{DynamicResource OnSurface}" HorizontalAlignment="Stretch" CornerRadius="6" SelectionChanged="OnAnySelectionChanged">
+                                                    <ComboBoxItem Content="ollama/llama3"/>
+                                                    <ComboBoxItem Content="ollama/mistral"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Behavior -->
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Behavior &amp; Audio" FontSize="20" FontWeight="Medium" Foreground="{DynamicResource Primary}" Margin="12,0"/>
+                            
+                            <Border Classes="GlassCard">
+                                <StackPanel>
+                                    <Grid ColumnDefinitions="*,Auto" Margin="16">
+                                        <StackPanel>
+                                            <TextBlock Text="Trigger Preset" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource OnSurface}"/>
+                                            <TextBlock Text="Fast for low latency, Accurate for better context." FontSize="14" Foreground="{DynamicResource OnSurfaceVariant}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                            <RadioButton Name="PresetFast" Content="Fast" GroupName="Preset" Checked="OnAnyPresetChecked"/>
+                                            <RadioButton Name="PresetBalanced" Content="Balanced" GroupName="Preset" IsChecked="True" Checked="OnAnyPresetChecked"/>
+                                            <RadioButton Name="PresetAccurate" Content="Accurate" GroupName="Preset" Checked="OnAnyPresetChecked"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Border Height="0.5" Background="#1AFFFFFF"/>
+
+                                    <Grid ColumnDefinitions="*,Auto" Margin="16">
+                                        <StackPanel>
+                                            <TextBlock Text="Screen Capture Exclusion" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource OnSurface}"/>
+                                            <TextBlock Text="Hide the overlay window from screen recording software." FontSize="14" Foreground="{DynamicResource OnSurfaceVariant}"/>
+                                        </StackPanel>
+                                        <ToggleSwitch Grid.Column="1" Name="CaptureExclusionToggle" IsChecked="True"/>
+                                    </Grid>
+                                    
+                                    <Border Height="0.5" Background="#1AFFFFFF"/>
+
+                                    <Grid ColumnDefinitions="*,Auto" Margin="16">
+                                        <StackPanel>
+                                            <TextBlock Text="Audio Devices" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource OnSurface}"/>
+                                            <TextBlock Name="AudioStatusText" Text="Detecting devices..." FontSize="14" Foreground="{DynamicResource OnSurfaceVariant}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- RAG Documents -->
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Knowledge Base" FontSize="20" FontWeight="Medium" Foreground="{DynamicResource Primary}" Margin="12,0"/>
+                            
+                            <Border Classes="GlassCard">
+                                <StackPanel Margin="16" Spacing="12">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <StackPanel>
+                                            <TextBlock Text="RAG Documents" FontSize="16" FontWeight="Medium" Foreground="{DynamicResource OnSurface}"/>
+                                            <TextBlock Text="Upload references to guide AI suggestions." FontSize="14" Foreground="{DynamicResource OnSurfaceVariant}"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="+ Add Document" Background="{DynamicResource SurfaceContainerHighest}" Foreground="{DynamicResource OnSurface}" CornerRadius="6" Padding="12,6" Click="OnAddDocumentClicked"/>
+                                    </Grid>
+                                    <ListBox Name="DocumentsList" Background="#33131313" CornerRadius="6" BorderThickness="0" MaxHeight="120" MinHeight="60" Foreground="{DynamicResource OnSurface}"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
             </Grid>
-        </Border>
-
-        <!-- LLM Provider Selection -->
-        <Border Grid.Row="2" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
-            <StackPanel Spacing="10">
-                <TextBlock Text="LLM Provider" Foreground="White" FontWeight="SemiBold"/>
-                
-                <Grid ColumnDefinitions="*,12,*" RowDefinitions="Auto,8,Auto">
-                    <StackPanel Grid.Column="0" Grid.Row="0">
-                        <TextBlock Text="Provider" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
-                        <ComboBox Name="ProviderCombo" 
-                                  Background="#333333"
-                                  Foreground="White"
-                                  HorizontalAlignment="Stretch"
-                                  SelectionChanged="OnProviderChanged">
-                            <ComboBoxItem Content="OpenAI" Tag="openai"/>
-                            <ComboBoxItem Content="Anthropic" Tag="anthropic"/>
-                            <ComboBoxItem Content="Google Gemini" Tag="gemini"/>
-                            <ComboBoxItem Content="Ollama (Local)" Tag="ollama"/>
-                            <ComboBoxItem Content="Azure OpenAI" Tag="azure"/>
-                            <ComboBoxItem Content="Custom/Other" Tag="custom"/>
-                        </ComboBox>
-                    </StackPanel>
-                    
-                    <StackPanel Grid.Column="2" Grid.Row="0">
-                        <TextBlock Text="Model" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
-                        <ComboBox Name="ModelCombo" 
-                                  Background="#333333"
-                                  Foreground="White"
-                                  HorizontalAlignment="Stretch"
-                                  SelectionChanged="OnAnySelectionChanged"/>
-                    </StackPanel>
-                    
-                    <StackPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2">
-                        <TextBlock Text="API Key" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBox Name="ApiKeyInput" 
-                                     PasswordChar="*"
-                                     Watermark="Enter your API key..."
-                                     Background="#333333"
-                                     Foreground="White"
-                                     CornerRadius="4"/>
-                            <Button Grid.Column="1" 
-                                    Name="ShowKeyButton"
-                                    Content="Show" 
-                                    Background="#444444"
-                                    Foreground="White"
-                                    Margin="8,0,0,0"
-                                    Padding="12,6"
-                                    CornerRadius="4"
-                                    Click="OnToggleKeyVisibility"/>
-                        </Grid>
-                    </StackPanel>
-                </Grid>
-                
-                <StackPanel Name="ApiBasePanel" IsVisible="False">
-                    <TextBlock Text="API Base URL (optional)" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
-                    <TextBox Name="ApiBaseInput" 
-                             Watermark="https://api.example.com/v1"
-                             Background="#333333"
-                             Foreground="White"
-                             CornerRadius="4"
-                             LostFocus="OnApiBaseChanged"/>
-                </StackPanel>
-            </StackPanel>
-        </Border>
-
-        <!-- Fallback Model -->
-        <Border Grid.Row="3" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
-            <StackPanel Spacing="8">
-                <TextBlock Text="Fallback Model (Optional)" Foreground="White" FontWeight="SemiBold"/>
-                <TextBlock Text="Used when primary model fails" Foreground="#666666" FontSize="11"/>
-                
-                <Grid ColumnDefinitions="*,12,*">
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Provider" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
-                        <ComboBox Name="FallbackProviderCombo" 
-                                  Background="#333333"
-                                  Foreground="White"
-                                  HorizontalAlignment="Stretch"
-                                  SelectionChanged="OnAnySelectionChanged">
-                            <ComboBoxItem Content="None" Tag="none" IsSelected="True"/>
-                            <ComboBoxItem Content="Ollama (Local)" Tag="ollama"/>
-                            <ComboBoxItem Content="OpenAI" Tag="openai"/>
-                            <ComboBoxItem Content="Anthropic" Tag="anthropic"/>
-                        </ComboBox>
-                    </StackPanel>
-                    
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="Model" Foreground="#AAAAAA" FontSize="12" Margin="0,0,0,4"/>
-                        <ComboBox Name="FallbackModelCombo" 
-                                  Background="#333333"
-                                  Foreground="White"
-                                  HorizontalAlignment="Stretch"
-                                  SelectionChanged="OnAnySelectionChanged">
-                            <ComboBoxItem Content="ollama/llama3"/>
-                            <ComboBoxItem Content="ollama/mistral"/>
-                        </ComboBox>
-                    </StackPanel>
-                </Grid>
-            </StackPanel>
-        </Border>
-
-        <!-- Trigger Preset -->
-        <Border Grid.Row="4" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
-            <StackPanel Spacing="8">
-                <TextBlock Text="Trigger Preset" Foreground="White" FontWeight="SemiBold"/>
-                <StackPanel Orientation="Horizontal" Spacing="20">
-                    <RadioButton Name="PresetFast" Content="Fast" Foreground="White" GroupName="Preset" Checked="OnAnyPresetChecked"/>
-                    <RadioButton Name="PresetBalanced" Content="Balanced" Foreground="White" GroupName="Preset" IsChecked="True" Checked="OnAnyPresetChecked"/>
-                    <RadioButton Name="PresetAccurate" Content="Accurate" Foreground="White" GroupName="Preset" Checked="OnAnyPresetChecked"/>
-                </StackPanel>
-                <TextBlock Text="Fast: Lower latency. Balanced: Good tradeoff. Accurate: Waits longer for context." 
-                           Foreground="#666666" FontSize="11" TextWrapping="Wrap"/>
-            </StackPanel>
-        </Border>
-
-        <!-- Audio Status -->
-        <Border Grid.Row="5" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
-            <StackPanel Spacing="8">
-                <TextBlock Text="Audio Capture" Foreground="White" FontWeight="SemiBold"/>
-                <TextBlock Name="AudioStatusText" Text="Detecting devices..." Foreground="#AAAAAA"/>
-                <CheckBox Name="CaptureExclusionToggle" Content="Hide overlay from screen capture" Foreground="White" IsChecked="True"/>
-            </StackPanel>
-        </Border>
-
-        <!-- RAG Documents -->
-        <Border Grid.Row="6" Background="#2D2D2D" CornerRadius="8" Padding="15" Margin="0,0,0,10">
-            <StackPanel Spacing="8">
-                <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="RAG Documents" Foreground="White" FontWeight="SemiBold"/>
-                    <Button Grid.Column="1" Content="+ Add" Background="#444444" Foreground="White" Padding="12,4" CornerRadius="4" Click="OnAddDocumentClicked"/>
-                </Grid>
-                <TextBlock Text="Add documents for context-aware suggestions" Foreground="#666666" FontSize="11"/>
-                <ListBox Name="DocumentsList" 
-                         Background="#252525" 
-                         MaxHeight="80"
-                         MinHeight="40"
-                         Foreground="White"/>
-            </StackPanel>
-        </Border>
-
-        <!-- Spacer -->
-        <Grid Grid.Row="7"/>
-
-        <!-- Start Button -->
-        <Button Grid.Row="8" 
-                Name="StartButton"
-                Content="Start Session" 
-                HorizontalAlignment="Stretch"
-                Height="48"
-                FontSize="16"
-                FontWeight="SemiBold"
-                Background="#4CAF50"
-                Foreground="White"
-                CornerRadius="8"
-                Margin="0,10,0,0"
-                Click="OnStartSessionClicked"/>
-    </Grid>
-    </ScrollViewer>
+        </Grid>
+    </Panel>
 </Window>
