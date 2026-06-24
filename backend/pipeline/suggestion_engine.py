@@ -39,8 +39,14 @@ class SuggestionEngine:
             history_text=history,
             rag_chunks=chunks,
         )
-        raw = self.provider_manager.generate(prompt)
-        bullets = self.response_parser.to_bullets(raw)
+        try:
+            raw = self.provider_manager.generate(prompt)
+            bullets = self.response_parser.to_bullets(raw)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"LLM generation failed: {e}")
+            raw = ""
+            bullets = [f"⚠️ LLM Error: {e}"]
 
         result = {
             "turn_id": turn_id,
