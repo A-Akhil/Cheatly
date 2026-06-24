@@ -230,6 +230,9 @@ public sealed class WindowsSpeechService : IAsyncDisposable
                     CheatlyLog.Info("Session completed naturally. Restarting to keep listening...");
                 }
 
+                // Re-check after delay — StopAsync may have been called while we waited
+                if (!IsRunning) return;
+
                 try 
                 { 
                     CheatlyLog.Info("Recreating SpeechRecognizer to avoid corruption...");
@@ -256,6 +259,11 @@ public sealed class WindowsSpeechService : IAsyncDisposable
 
         try
         {
+            // Unsubscribe events FIRST to prevent OnSessionCompleted from restarting
+            _recognizer.HypothesisGenerated -= OnHypothesisGenerated;
+            _recognizer.ContinuousRecognitionSession.ResultGenerated -= OnResultGenerated;
+            _recognizer.ContinuousRecognitionSession.Completed -= OnSessionCompleted;
+
             var oldCts = Interlocked.Exchange(ref _silenceCts, null);
             oldCts?.Cancel();
             oldCts?.Dispose();
@@ -277,10 +285,6 @@ public sealed class WindowsSpeechService : IAsyncDisposable
                 CheatlyLog.Info($"Session restarting/stopping — flushing final transcript: {repr(forcedFinal)}");
                 FinalTranscriptReady?.Invoke(forcedFinal);
             }
-
-            _recognizer.HypothesisGenerated -= OnHypothesisGenerated;
-            _recognizer.ContinuousRecognitionSession.ResultGenerated -= OnResultGenerated;
-            _recognizer.ContinuousRecognitionSession.Completed -= OnSessionCompleted;
 
             await _recognizer.ContinuousRecognitionSession.StopAsync().AsTask();
             CheatlyLog.Info("Windows STT stopped");
