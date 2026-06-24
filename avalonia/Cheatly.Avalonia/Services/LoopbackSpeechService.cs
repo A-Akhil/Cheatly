@@ -100,16 +100,6 @@ public sealed class LoopbackSpeechService : IAsyncDisposable
             _capture.StartRecording();
             CheatlyLog.Info("WASAPI loopback capture started -- listening for system audio");
 
-            // Watchdog: warn if data flows but no recognition fires after 15 seconds
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(15000);
-                if (IsRunning && _recognitionCount == 0)
-                {
-                    CheatlyLog.Warn($"Loopback watchdog: {_chunksReceived} audio chunks received but 0 recognitions after 15s. System.Speech may not handle loopback audio well on this system.");
-                }
-            });
-
             IsRunning = true;
             return Task.FromResult(true);
         }
@@ -240,7 +230,24 @@ internal sealed class AudioPipeStream : Stream
             }
             else
             {
-                try { _current = _queue.Take(); _pos = 0; }
+                try 
+                { 
+                    if (_queue.TryTake(out var chunk, 50))
+                    {
+                        _current = chunk;
+                        _pos = 0;
+                    }
+                    else if (_queue.IsAddingCompleted)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        // Synthesize silence (50ms of 16kHz 16-bit mono = 1600 bytes)
+                        _current = new byte[1600];
+                        _pos = 0;
+                    }
+                }
                 catch (InvalidOperationException) { break; }
             }
         }

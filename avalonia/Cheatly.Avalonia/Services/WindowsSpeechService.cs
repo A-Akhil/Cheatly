@@ -13,6 +13,7 @@ public sealed class WindowsSpeechService : IAsyncDisposable
     private CancellationTokenSource? _silenceCts;
     private readonly StringBuilder _accumulated = new();
     private readonly object _lock = new();
+    private string? _lastResultText;
 
     private const int SilenceThresholdMs = 1500;
 
@@ -75,9 +76,6 @@ public sealed class WindowsSpeechService : IAsyncDisposable
 
             _recognizer = recognizer;
 
-            // Keep the session alive as long as possible
-            _recognizer.Timeouts.InitialSilenceTimeout = TimeSpan.FromDays(1);
-            _recognizer.Timeouts.BabbleTimeout = TimeSpan.FromDays(1);
             // Force the OS to finalize phrases quickly when the user pauses
             _recognizer.Timeouts.EndSilenceTimeout = TimeSpan.FromMilliseconds(500);
 
@@ -144,12 +142,17 @@ public sealed class WindowsSpeechService : IAsyncDisposable
             return;
         }
 
-        CheatlyLog.Info($"Result accepted (accumulating for final): {repr(text)}");
-        // Don't call FragmentReady here — hypotheses already handle live captions.
-        // Only accumulate for the silence-timer FinalTranscriptReady.
-
         lock (_lock)
         {
+            if (text == _lastResultText)
+            {
+                CheatlyLog.Warn($"Ignoring duplicate SAPI result: {repr(text)}");
+                return;
+            }
+            _lastResultText = text;
+
+            CheatlyLog.Info($"Result accepted (accumulating for final): {repr(text)}");
+
             if (_accumulated.Length > 0) _accumulated.Append(' ');
             _accumulated.Append(text);
         }
@@ -168,6 +171,7 @@ public sealed class WindowsSpeechService : IAsyncDisposable
             {
                 final = _accumulated.ToString().Trim();
                 _accumulated.Clear();
+                _lastResultText = null;
             }
 
             if (!string.IsNullOrWhiteSpace(final))
@@ -192,7 +196,7 @@ public sealed class WindowsSpeechService : IAsyncDisposable
         old?.Dispose();
     }
 
-    private async void OnSessionCompleted(
+    private void OnSessionCompleted(
         SpeechContinuousRecognitionSession session,
         SpeechContinuousRecognitionCompletedEventArgs args)
     {
@@ -203,22 +207,27 @@ public sealed class WindowsSpeechService : IAsyncDisposable
             || args.Status == SpeechRecognitionResultStatus.TimeoutExceeded
             || args.Status == SpeechRecognitionResultStatus.UserCanceled)
         {
-            if (args.Status == SpeechRecognitionResultStatus.UserCanceled)
+            _ = Task.Run(async () =>
             {
-                CheatlyLog.Warn("Session UserCanceled -- restarting after short delay...");
-                await Task.Delay(500);
-            }
-            else
-            {
-                CheatlyLog.Info("Session completed naturally. Restarting to keep listening...");
-            }
+                if (args.Status == SpeechRecognitionResultStatus.UserCanceled)
+                {
+                    CheatlyLog.Warn("Session UserCanceled -- restarting after short delay...");
+                    await Task.Delay(500);
+                }
+                else
+                {
+                    CheatlyLog.Info("Session completed naturally. Restarting to keep listening...");
+                }
 
-            try 
-            { 
-                await session.StartAsync().AsTask(); 
-                CheatlyLog.Info("Restarted successfully.");
-            }
-            catch (Exception ex) { CheatlyLog.Error(ex, "Failed to restart mic session"); }
+                try 
+                { 
+                    CheatlyLog.Info("Recreating SpeechRecognizer to avoid corruption...");
+                    await StopAsync();
+                    await StartAsync();
+                    CheatlyLog.Info("Restarted successfully.");
+                }
+                catch (Exception ex) { CheatlyLog.Error(ex, "Failed to restart mic session"); }
+            });
             return;
         }
 
@@ -247,7 +256,12 @@ public sealed class WindowsSpeechService : IAsyncDisposable
             await _recognizer.ContinuousRecognitionSession.StopAsync().AsTask();
             CheatlyLog.Info("Windows STT stopped");
         }
-        catch (Exception ex) { CheatlyLog.Error(ex, "StopAsync"); }
+        catch (Exception ex) 
+        { 
+            // Ignore COMException if the session was already cancelled/completed (0x80131509)
+            if (ex.HResult != unchecked((int)0x80131509))
+                CheatlyLog.Error(ex, "StopAsync"); 
+        }
         finally
         {
             _recognizer.Dispose();
